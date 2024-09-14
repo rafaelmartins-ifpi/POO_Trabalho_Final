@@ -1,15 +1,19 @@
+
+import { conteudoSchema, idSchema } from "../zod_schemas/zodSchemas";
 import { Usuario } from "./class_usuario";
-import {format} from 'date-fns';
 
 
 class Publicacao {
 
-    private _id: number;
+    readonly _id: number;
     private _usuario: Usuario;
     private _conteudo: string;
     private _dataHora = new Date();
 
     constructor (id: number, usuario: Usuario, conteudo: string){
+        idSchema.parse(id);
+        conteudoSchema.parse(conteudo);
+
         this._id = id;
         this._usuario = usuario;
         this._conteudo = conteudo;
@@ -30,7 +34,12 @@ class Publicacao {
     get dataHora() {
         return this._dataHora;
     }
-}
+
+    set conteudo (novoConteudo: string) {
+        conteudoSchema.parse(novoConteudo);
+        this._conteudo = novoConteudo;
+    }
+};
 
 
 export {Publicacao};

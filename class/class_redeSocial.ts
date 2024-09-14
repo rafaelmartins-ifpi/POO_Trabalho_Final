@@ -5,30 +5,49 @@ import { Publicacao } from "./class_publicacao";
 
 class RedeSocial {
 
-    private _usuarios: Usuario[] = [];
-    private _publicacoes: Publicacao[] = [];
-    private _controleIdUsuario: number = 1;
-    private _controleIdPublicacao: number = 1;
+    private _usuarios: Usuario[];
+    private _publicacoes: Publicacao[];
+    private _controleIdUsuario: number;
+    private _controleIdPublicacao: number;
 
+    constructor (usuarios: Usuario[] = [], publicacoes: Publicacao [] = [], controleIdUsuario: number = 1, controleIdPublicacao: number = 1 ) {
+        this._usuarios = usuarios;
+        this._publicacoes = publicacoes;
+        this._controleIdUsuario = controleIdUsuario;
+        this._controleIdPublicacao = controleIdPublicacao;
+    }
+
+    
     get usuarios() {
         return this._usuarios
     }
+
 
     get publicacaoes() {
         return this._publicacoes;
     }
 
+
+    // retorna id para cadastro de usuário e incrementa o controleIdUsuario
     criarIdUsuario() {
         return this._controleIdUsuario++;
     }
 
+
+    // retorna id para cadastro de publicação e incrementa o controleIdPublicacao
     criarIdPublicacao() {
         return this._controleIdPublicacao++;
     }
 
 
+    validarEmail() { // retorna true se o email for válido
+
+    } 
 
 }
+
+
+export {RedeSocial};
 
 
 /*

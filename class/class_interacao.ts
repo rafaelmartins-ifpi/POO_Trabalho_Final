@@ -1,20 +1,24 @@
 import { Publicacao } from "./class_publicacao";
 import { Usuario } from "./class_usuario";
-import { TipoIteracao } from "./utils";
+import { TipoInteracao } from "../utils";
+import { idSchema, tipoInteracaoSchema } from "../zod_schemas/zodSchemas";
 
 
-class Iteracao {
+class Interacao {
 
-    private _id: number;
+    readonly _id: number;
     private _publicacao: Publicacao;
-    private _tipoIteracao: TipoIteracao;
+    private _tipoInteracao: TipoInteracao;
     private _usuario: Usuario;
     private _dataHora = new Date();
 
-    constructor (id: number, publicacao: Publicacao, tipoIteracao: TipoIteracao, usuario: Usuario) {
+    constructor (id: number, publicacao: Publicacao, tipoInteracao: TipoInteracao, usuario: Usuario) {
+        idSchema.parse(id);
+        tipoInteracaoSchema.parse(tipoInteracao);
+
         this._id = id;
         this._publicacao = publicacao;
-        this._tipoIteracao = tipoIteracao;
+        this._tipoInteracao = tipoInteracao;
         this._usuario = usuario;
     }
 
@@ -27,7 +31,7 @@ class Iteracao {
     }
 
     get tipoIteracao() {
-        return this._tipoIteracao;
+        return this._tipoInteracao;
     }
 
     get usuario() {
@@ -39,4 +43,4 @@ class Iteracao {
     }
 }
 
-export {Iteracao};
+export {Interacao};
