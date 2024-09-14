@@ -1,7 +1,7 @@
 import { Publicacao } from "./class_publicacao";
 import { Interacao } from "./class_interacao";
 import { Usuario } from "./class_usuario";
-import { TipoInteracao } from "../utils";
+import { TipoInteracao } from "../types";
 
 
 class PublicacaoAvancada extends Publicacao {

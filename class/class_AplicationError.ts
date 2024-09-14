@@ -3,6 +3,13 @@ class AplicationError extends Error{
     constructor (message: string) {
         super(message);
     } 
-};
+}
 
-export {AplicationError};
+
+class AppError extends AplicationError {
+    constructor (message: string){
+        super (message)
+    }
+}
+
+export {AplicationError, AppError};

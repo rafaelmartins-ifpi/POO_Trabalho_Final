@@ -1,6 +1,6 @@
 import { Publicacao } from "./class_publicacao";
 import { Usuario } from "./class_usuario";
-import { TipoInteracao } from "../utils";
+import { TipoInteracao } from "../types";
 import { idSchema, tipoInteracaoSchema } from "../zod_schemas/zodSchemas";
 
 
