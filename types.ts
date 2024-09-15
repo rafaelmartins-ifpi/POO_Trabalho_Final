@@ -4,7 +4,7 @@ enum TipoInteracao {
     Dislike = "dislike",
     Riso = "riso",
     Aplauso = "aplauso",
-    Amor = "Amor"
+    Amor = "amor"
 };
 
 export {TipoInteracao};

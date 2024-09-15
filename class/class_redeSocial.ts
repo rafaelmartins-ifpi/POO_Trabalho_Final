@@ -2,6 +2,7 @@ import { Usuario } from "./class_usuario";
 import { Publicacao } from "./class_publicacao";
 import { AppError } from "./class_AplicationError";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
+import {format} from 'date-fns';
 
 // REDE SOCIAL MIRC
 
@@ -86,32 +87,15 @@ class RedeSocial {
         this._controleIdUsuario +=1;
     }
 
-    adicionarPublicacao(apelido: string, conteudo: string): void {
-        // Verifica se o usuário existe
-        const usuario = this.encontrarUsuarioPorApelido(apelido);
-
-        // Cria a nova publicação
-        const novaPublicacao = new Publicacao(
-            this._controleIdPublicacao,
-            usuario,
-            conteudo
-        );
-
+    adicionarPublicacao(publicacao: Publicacao): void {
+        
         // Adiciona a publicação à lista
-        this._publicacoes.push(novaPublicacao);
+        this._publicacoes.push(publicacao);
         this._controleIdPublicacao += 1;
     }
 
-    adicionarPublicacaoAvancada(apelido: string, conteudo: string): void {
-        const usuario = this.encontrarUsuarioPorApelido(apelido);
-
-        const novaPublicacaoAvancada = new PublicacaoAvancada(
-            this._controleIdPublicacao,
-            usuario,
-            conteudo
-        );
-
-        this._publicacoes.push(novaPublicacaoAvancada);
+    adicionarPublicacaoAvancada(publicacaoAvancada: PublicacaoAvancada): void {
+        this._publicacoes.push(publicacaoAvancada);
         this._controleIdPublicacao += 1;
     }
 
@@ -133,24 +117,26 @@ class RedeSocial {
         }
 
         // Ordena as publicações pela data de criação em ordem decrescente
-        const publicacoesOrdenadas = [...this._publicacoes].sort((a, b) => b.dataHora.getTime() - a.dataHora.getTime());
+        const publicacoesOrdenadas: Publicacao[] = [...this._publicacoes].sort((a, b) => b.dataHora.getTime() - a.dataHora.getTime());
 
-        console.log("Feed de Publicações:");
+        console.log();
+        console.log("-----------------------------------------------------------------");
+        console.log();
         publicacoesOrdenadas.forEach((publicacao: Publicacao) => {
             console.log(`ID: ${publicacao.id}`);
-            console.log(`Usuário: ${publicacao.usuario.apelido}`);
+            console.log();
             console.log(`Conteúdo: ${publicacao.conteudo}`);
-            console.log(`Data e Hora: ${publicacao.dataHora}`);
+            console.log();
+            console.log(`por ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
 
+            // Se a publicação for uma PublicacaoAvancada, exibe as interações
             if (publicacao instanceof PublicacaoAvancada) {
-                console.log("Interações:");
-                // Exibe o tipo de interação e a quantidade de cada tipo
-                for (const tipo in publicacao['_contadorInteracoes']) {
-                    console.log(`- ${tipo}: ${publicacao['_contadorInteracoes'][tipo]}`);
-                }
+                console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
             }
 
-            console.log("---------------------------------------------------");
+            console.log();
+            console.log("-----------------------------------------------------------------");
+            console.log();
         });
     }
 
