@@ -28,6 +28,9 @@ function main () {
             case "4":
                 app.telaListarPublicacoes();
                 break;
+            case "5":
+                app.telaInteragir();
+                break;
             case "0":
                 break;
             default:

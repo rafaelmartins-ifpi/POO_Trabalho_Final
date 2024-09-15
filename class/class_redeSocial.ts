@@ -3,6 +3,7 @@ import { Publicacao } from "./class_publicacao";
 import { AppError } from "./class_AplicationError";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
 import {format} from 'date-fns';
+import { Interacao } from "./class_interacao";
 
 // REDE SOCIAL MIRC
 
@@ -10,19 +11,25 @@ class RedeSocial {
 
     private _usuarios: Usuario[];
     private _publicacoes: Publicacao[];
+    private _interacoes: Interacao[];
     private _controleIdUsuario: number;
     private _controleIdPublicacao: number;
+    private _controleIdInteracao: number;
 
     constructor (
         usuarios: Usuario[] = [],
         publicacoes: Publicacao [] = [],
+        interacoes: Interacao[] = [],
         controleIdUsuario: number = 1,
-        controleIdPublicacao: number = 1
+        controleIdPublicacao: number = 1,
+        controleIdInteracao: number = 1
     ) {
         this._usuarios = usuarios;
         this._publicacoes = publicacoes;
+        this._interacoes = interacoes;
         this._controleIdUsuario = controleIdUsuario;
         this._controleIdPublicacao = controleIdPublicacao;
+        this._controleIdInteracao = controleIdInteracao;
     }
 
 
@@ -40,6 +47,10 @@ class RedeSocial {
         return this._controleIdUsuario;
     }
 
+    get controleIdInteracao () {
+        return this._controleIdInteracao;
+    }
+
 
     get controleIdPublicacao() {
         return this._controleIdPublicacao;
@@ -47,34 +58,42 @@ class RedeSocial {
 
     validarIdUsuario (id: number): void {
         if (this._usuarios.some((u: Usuario) => u.id === id)) {
-            throw new AppError(`Já existe um usuário com o ID: ${id}.`);
+            throw new AppError(`\nJá existe um usuário com o ID: ${id}.`);
         }
     }
 
     validarApelidoUsuario (apelido: string): void {
         if (this._usuarios.some((u: Usuario) => u.apelido === apelido)) {
-            throw new AppError(`Já existe um usuário com o apelido: ${apelido}.`);
+            throw new AppError(`\nJá existe um usuário com o apelido: ${apelido}.`);
         } 
     }
 
     validarEmailUsuario (email: string): void {
         if (this._usuarios.some((u: Usuario) => u.email === email)) {
-            throw new AppError (`Já existe um usuário com o e-mail: ${email}.`);
+            throw new AppError (`\nJá existe um usuário com o e-mail: ${email}.`);
         }
     }
 
     validarDocumentoUsuario (documento: string): void {
         if (this._usuarios.some((u: Usuario) => u.documento === documento)) {
-            throw new AppError (`Já existe um usuário com o CPF: ${documento}.`);
+            throw new AppError (`\nJá existe um usuário com o CPF: ${documento}.`);
         }
     }
 
     encontrarUsuarioPorApelido(apelido: string): Usuario {
         const usuario = this._usuarios.find(u => u.apelido === apelido);
         if (!usuario) {
-            throw new AppError(`Usuário com o apelido ${apelido} não encontrado.`);
+            throw new AppError(`\nUsuário com o apelido ${apelido} não encontrado.`);
         }
         return usuario;
+    }
+
+    encontrarPublicacaoPorId(idPublicacao: number): Publicacao {
+        const publicacao = this._publicacoes.find(p => p.id === idPublicacao);
+        if (!publicacao) {
+            throw new AppError(`\nPublicacação de ID: ${idPublicacao} não encontrada.`);
+        }
+        return publicacao;
     }
 
     adicionarUsuario(usuario: Usuario): void {
@@ -99,9 +118,22 @@ class RedeSocial {
         this._controleIdPublicacao += 1;
     }
 
+    adicionarInteracao(publicacao: PublicacaoAvancada, interacao: Interacao): void {
+        
+        if (!(publicacao instanceof PublicacaoAvancada)) {
+            throw new AppError("\nPublicação Simples. Interações somente em Publicações Avançadas!");
+        }
+        // Adiciona a interação à publicação
+        publicacao.adicionarInteracao(interacao);
+    
+        // Atualiza a lista de interações da publicação
+        this._interacoes.push(interacao);
+        this._controleIdInteracao += 1;
+    }
+
     listarUsuarios(): void {
         if (this._usuarios.length === 0) {
-            throw new AppError("Não existem usuários cadastradaos.");
+            throw new AppError("\nNão existem usuários cadastradaos.");
         }
         
         console.log("Lista de Usuários:");
@@ -113,7 +145,7 @@ class RedeSocial {
 
     listarPublicacoes(): void {
         if (this._publicacoes.length === 0) {
-            throw new AppError ("Nenhuma publicação encontrada.");
+            throw new AppError ("\nNenhuma publicação encontrada.");
         }
 
         // Ordena as publicações pela data de criação em ordem decrescente
@@ -141,7 +173,6 @@ class RedeSocial {
     }
 
 }
-
 
 
 

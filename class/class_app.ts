@@ -6,6 +6,8 @@ import { apelidoSchema, conteudoSchema, documentoSchema, emailSchema, idSchema }
 import { AplicationError, AppError } from "./class_AplicationError";
 import { Publicacao } from "./class_publicacao";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
+import { TipoInteracao } from "../types";
+import { Interacao } from "./class_interacao";
 
 
 
@@ -35,8 +37,8 @@ class App {
         console.log();
         console.log(
             " [1] Cadastrar Usuário          [2] Listar Usuarios          [3] Postar\n",
-            "[4] Listar Postagens          [5] xxxxxxxxxx          [6] xxxxxxxxxx\n",
-            "[7] xxxxxxxxxx          [8] xxxxxxxxxx          [9] xxxxxxxxxx\n",
+            "[4] Listar Postagens           [5] Interagir                [6] xxxxxxxxxx\n",
+            "[7] xxxxxxxxxx                [8] xxxxxxxxxx               [0] Sair\n",
         );
     }
 
@@ -222,7 +224,82 @@ class App {
     
         } while (repetir.toLowerCase() === 's');
     }
-    
+
+
+    telaInteragir(): void {
+        let repetir: string = "";
+
+        do {
+            try {
+                console.clear();
+                console.log();
+                console.log("INTERAGIR EM PUBLICAÇÕES AVANÇADAS");
+                console.log();
+
+                // Recebe o ID da publicação
+                const idPublicacao: number = Number(this._input("ID da publicação: "));
+                const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
+
+                if (!(publicacao instanceof PublicacaoAvancada)) {
+                    throw new AppError("\nPublicação selecionada não é uma Publicação Avançada.");
+                }
+
+                // Recebe o apelido do usuário
+                console.log();
+                console.log("Quem vai interagir?");
+                const apelido: string = this._input("Usuário (apelido): ");
+                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+
+                // Recebe o tipo de interação
+                console.log();
+                console.log("Tipos de Interação:\n [1] Like\n [2] Dislike\n [3] Riso\n [4] Aplauso\n [5] Amor");
+                console.log();
+                const tipoInteracao: string = this._input("Interação [nº]: ");
+                let tipo: TipoInteracao;
+
+                switch (tipoInteracao) {
+                    case "1":
+                        tipo = TipoInteracao.Like;
+                        break;
+                    case "2":
+                        tipo = TipoInteracao.Dislike;
+                        break;
+                    case "3":
+                        tipo = TipoInteracao.Riso;
+                        break;
+                    case "4":
+                        tipo = TipoInteracao.Aplauso;
+                        break;
+                    case "5":
+                        tipo = TipoInteracao.Amor;
+                        break;
+                    default:
+                        throw new AppError("\nTipo de interação inválido.");
+                }
+
+                const interacao = new Interacao(this._redesocial.controleIdInteracao, publicacao, tipo, usuario);
+
+                // Adiciona a interação à publicação
+                this._redesocial.adicionarInteracao(publicacao, interacao);
+
+                console.log("\nInteração registrada com sucesso!");
+
+            } catch (e) {
+                if (e instanceof z.ZodError) {
+                    console.log(e.errors.map(err => err.message));
+                } else if (e instanceof AppError) {
+                    console.log(e.message);
+                } else {
+                    console.log("\nErro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+
+            console.log();
+            repetir = this._input("Interagir em outra publicação? [s/n]: ");
+
+        } while (repetir.toLowerCase() === 's');
+    }
 }
+    
 
 export {App}

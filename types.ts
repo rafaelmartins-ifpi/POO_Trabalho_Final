@@ -7,5 +7,6 @@ enum TipoInteracao {
     Amor = "amor"
 };
 
+
 export {TipoInteracao};
 
