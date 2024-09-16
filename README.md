@@ -3,9 +3,10 @@ Trabalho Final da Matéria POO 2024/1
 ### Rede Social MIRC
 
 #### Dependências:
-- prompt-sync;
-- zod;
-- date-fns
+- prompt-sync *(receber inputs do usuário)*;
+- zod *(validações)*;
+- date-fns *(formatar datas)*;  
+- ts-node *(rodar diretamente o arquivo ts sem transpilar)*
 ## Integrantes
 - João Vitor
 - Rafael L. Martins

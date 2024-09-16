@@ -38,7 +38,7 @@ class App {
         console.log(
             " [1] Cadastrar Usuário          [2] Listar Usuarios          [3] Postar\n",
             "[4] Listar Postagens           [5] Interagir                [6] xxxxxxxxxx\n",
-            "[7] xxxxxxxxxx                [8] xxxxxxxxxx               [0] Sair\n",
+            "[7] xxxxxxxxxx                 [8] xxxxxxxxxx               [0] Sair\n",
         );
     }
 
