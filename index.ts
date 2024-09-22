@@ -31,10 +31,16 @@ function main () {
             case "5":
                 app.telaInteragir();
                 break;
+            case "6":
+                app.telaListarPublicacoesPorUsuario();
+                break;
+            case "7":
+                app.telaEditarPublicacao();
+                break;   
             case "0":
                 break;
             default:
-                input("\nOpção Inválida !! \n [enter]");
+                input("\nOpção Inválida. \n [enter]");
                 break;
         }
 

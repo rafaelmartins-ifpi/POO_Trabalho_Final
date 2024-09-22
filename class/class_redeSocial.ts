@@ -30,6 +30,8 @@ class RedeSocial {
         this._controleIdUsuario = controleIdUsuario;
         this._controleIdPublicacao = controleIdPublicacao;
         this._controleIdInteracao = controleIdInteracao;
+
+        this.adicionarUsuario(new Usuario (1, "admin", "admin@admin.com", "11111111111"));
     }
 
 
@@ -172,6 +174,43 @@ class RedeSocial {
         });
     }
 
+    listarPublicacoesUsuario(usuario: Usuario): void {
+        const publicacoesOrdenadas: Publicacao[] = [...this._publicacoes].sort((a, b) => b.dataHora.getTime() - a.dataHora.getTime());
+
+        const publicacoesUsuario = publicacoesOrdenadas.filter(p => p.usuario == usuario);
+
+        if (publicacoesUsuario.length === 0) {
+            throw new AppError ("\nNenhuma publicação encontrada.");
+        }
+
+        console.log();
+        console.log("-----------------------------------------------------------------");
+        console.log();
+        publicacoesUsuario.forEach((publicacao: Publicacao) => {
+            console.log(`ID: ${publicacao.id}`);
+            console.log();
+            console.log(`Conteúdo: ${publicacao.conteudo}`);
+            console.log();
+            console.log(`por ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+
+            // Se a publicação for uma PublicacaoAvancada, exibe as interações
+            if (publicacao instanceof PublicacaoAvancada) {
+                console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+            }
+
+            console.log();
+            console.log("-----------------------------------------------------------------");
+            console.log();
+        });
+    }
+
+    editarPublicacao(usuario: Usuario, publicacao: Publicacao, novoConteudo: string): void {
+        if (usuario !== publicacao.usuario) {
+            throw new AppError("\nVocê pode editar publicação de outro usuário.");
+        }
+
+        publicacao.conteudo = novoConteudo;
+    }
 }
 
 

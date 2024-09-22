@@ -37,8 +37,8 @@ class App {
         console.log();
         console.log(
             " [1] Cadastrar Usuário          [2] Listar Usuarios          [3] Postar\n",
-            "[4] Listar Postagens           [5] Interagir                [6] xxxxxxxxxx\n",
-            "[7] xxxxxxxxxx                 [8] xxxxxxxxxx               [0] Sair\n",
+            "[4] Listar Postagens           [5] Interagir                [6] Listar Postagens por Usuario\n",
+            "[7] Editar Postagem            [8] xxxxxxxxxx               [0] Sair\n",
         );
     }
 
@@ -55,7 +55,7 @@ class App {
                 console.log("insira os dados solicitados abaixo");
                 console.log();
             
-                const apelido: string = this._input("Apelido: ");
+                const apelido: string = this._input("Apelido: ").toLowerCase();
                 apelidoSchema.parse(apelido);
                 
                 const email: string = this._input("E-mail: ");
@@ -135,7 +135,7 @@ class App {
                 console.log();
                 
                 // Recebe o apelido do usuário
-                const apelido: string = this._input("Usuário (apelido): ");
+                const apelido: string = this._input("Usuário (apelido): ").toLowerCase();
                 console.log();
 
                 // Verifica se o usuário existe
@@ -159,7 +159,7 @@ class App {
 
                         const publicacao = new Publicacao(this._redesocial.controleIdPublicacao, usuario, conteudo);
                         this._redesocial.adicionarPublicacao(publicacao);
-                        console.log("Postagem Simples com sucesso !!");
+                        console.log("\nPostagem Simples com sucesso !!");
 
                         break;
                     
@@ -171,7 +171,7 @@ class App {
 
                         const publicacaoAvancada = new PublicacaoAvancada(this._redesocial.controleIdPublicacao, usuario, conteudo);
                         this._redesocial.adicionarPublicacaoAvancada(publicacaoAvancada);
-                        console.log("Postagem Avançada com sucesso !!");
+                        console.log("\nPostagem Avançada com sucesso !!");
 
                         break;
 
@@ -247,7 +247,7 @@ class App {
                 // Recebe o apelido do usuário
                 console.log();
                 console.log("Quem vai interagir?");
-                const apelido: string = this._input("Usuário (apelido): ");
+                const apelido: string = this._input("Usuário (apelido): ").toLowerCase();
                 const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
                 // Recebe o tipo de interação
@@ -296,6 +296,92 @@ class App {
 
             console.log();
             repetir = this._input("Interagir em outra publicação? [s/n]: ");
+
+        } while (repetir.toLowerCase() === 's');
+    }
+
+
+    telaListarPublicacoesPorUsuario(): void{
+        let repetir: string = "";
+    
+        do {
+            try {
+                console.clear();
+                console.log();
+                const apelido: string = this._input("Usuario (apelido): ").toLowerCase();
+                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+
+
+                console.clear();
+                console.log();
+                console.log(`-------------- FEED DE POSTAGENS DO USUARIO ${apelido.toUpperCase()} --------------`);
+                console.log();
+    
+                // Chama o método da RedeSocial para listar as publicações
+                this._redesocial.listarPublicacoesUsuario(usuario);
+    
+            } catch (e) {
+                if (e instanceof z.ZodError) {
+                    console.log(e.errors.map(err => err.message));
+                } else if (e instanceof AplicationError) {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+    
+            console.log();
+            repetir = this._input("Listar novamente? [s/n]: ");
+    
+        } while (repetir.toLowerCase() === 's');
+    }
+
+    telaEditarPublicacao(): void {
+        let repetir: string = "";
+
+        do {
+            try {
+                console.clear();
+                console.log();
+                console.log("------------ EDITAR PUBLICAÇÃO -----------");
+                console.log();
+
+                
+                const apelido: string = this._input("Usuário (apelido): ");
+                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+
+                // Recebe o ID da publicação
+                console.log();
+                const idPublicacao: number = Number(this._input("Publicação [Id]: "));
+                const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
+
+                if (publicacao.usuario !== usuario) {
+                    throw new AppError("\nVocê pode editar publicação de outro usuário.");
+                }
+
+                // Recebe o novo conteúdo da publicação
+                console.log();
+                console.log("Novo conteúdo da publicação:\n");
+                const novoConteudo: string = this._input("> ");
+                conteudoSchema.parse(novoConteudo);
+
+                // Atualiza o conteúdo da publicação
+                this._redesocial.editarPublicacao(usuario, publicacao, novoConteudo);
+
+                console.log("\nPublicação atualizada com sucesso!");
+
+            } catch (e) {
+                if (e instanceof z.ZodError) {
+                    console.log(e.errors.map(err => err.message));
+                } else if (e instanceof AplicationError) {
+                    console.log(e.message);
+                } else {
+                    console.log("\nErro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+
+            console.log();
+            repetir = this._input("Editar outra publicação? [s/n]: ");
 
         } while (repetir.toLowerCase() === 's');
     }

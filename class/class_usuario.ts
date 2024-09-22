@@ -42,10 +42,12 @@ class Usuario {
 
     set email (novoEmail) {
         emailSchema.parse(novoEmail);
+        this._email = novoEmail;
     }
 
     set documento (novoDocumento) {
         documentoSchema.parse(novoDocumento);
+        this._documento = (novoDocumento);
     }
 
 };

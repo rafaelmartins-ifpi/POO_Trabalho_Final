@@ -38,6 +38,7 @@ class Publicacao {
     set conteudo (novoConteudo: string) {
         conteudoSchema.parse(novoConteudo);
         this._conteudo = novoConteudo;
+        this._dataHora = new Date();
     }
 };
 
