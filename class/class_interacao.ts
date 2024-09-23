@@ -1,6 +1,6 @@
 import { Publicacao } from "./class_publicacao";
 import { Usuario } from "./class_usuario";
-import { TipoInteracao } from "../types";
+import { TipoInteracao } from "../utils";
 import { idSchema, tipoInteracaoSchema } from "../zod_schemas/zodSchemas";
 
 
@@ -12,7 +12,7 @@ class Interacao {
     private _usuario: Usuario;
     private _dataHora: Date;
 
-    constructor (id: number, publicacao: Publicacao, tipoInteracao: TipoInteracao, usuario: Usuario) {
+    constructor (id: number, publicacao: Publicacao, tipoInteracao: TipoInteracao, usuario: Usuario, dataHora: Date) {
         idSchema.parse(id);
         tipoInteracaoSchema.parse(tipoInteracao);
 
@@ -20,7 +20,7 @@ class Interacao {
         this._publicacao = publicacao;
         this._tipoInteracao = tipoInteracao;
         this._usuario = usuario;
-        this._dataHora = new Date();
+        this._dataHora = dataHora;
     }
 
     get id() {

@@ -6,10 +6,10 @@ import { apelidoSchema, conteudoSchema, documentoSchema, emailSchema, idSchema }
 import { AplicationError, AppError } from "./class_AplicationError";
 import { Publicacao } from "./class_publicacao";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
-import { TipoInteracao } from "../types";
+import { TipoInteracao } from "../utils";
 import { Interacao } from "./class_interacao";
 import {format} from 'date-fns';
-
+import fs from 'fs'; 
 
 
 class App {
@@ -28,6 +28,10 @@ class App {
         "\t╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
     }
 
+    get redesocial(): RedeSocial {
+        return this._redesocial;
+    }
+
 
     telaPrincipal(): void {
         console.clear();
@@ -39,7 +43,7 @@ class App {
         console.log(
             " [1] Cadastrar Usuário          [2] Listar Usuarios          [3] Postar\n",
             "[4] Listar Postagens           [5] Interagir                [6] Listar Postagens por Usuario\n",
-            "[7] Editar Postagem            [8] xxxxxxxxxx               [0] Sair\n",
+            "[7] Editar Postagem            [8] Controle de ID's         [0] Sair\n",
         );
     }
 
@@ -168,7 +172,7 @@ class App {
                 switch (opTipo) {
                     case "1":
                         
-                        const publicacao = new Publicacao(this._redesocial.controleIdPublicacao, usuario, conteudo);
+                        const publicacao = new Publicacao(this._redesocial.controleIdPublicacao, usuario, conteudo, new Date());
                         this._redesocial.adicionarPublicacao(publicacao);
                         console.log("\nPostagem Simples com sucesso.");
 
@@ -176,7 +180,7 @@ class App {
                     
                     case "2":
                       
-                        const publicacaoAvancada = new PublicacaoAvancada(this._redesocial.controleIdPublicacao, usuario, conteudo);
+                        const publicacaoAvancada = new PublicacaoAvancada(this._redesocial.controleIdPublicacao, usuario, conteudo, new Date());    
                         this._redesocial.adicionarPublicacao(publicacaoAvancada);
                         console.log("\nPostagem Avançada com sucesso.");
 
@@ -215,25 +219,26 @@ class App {
     
                 // Chama o método da RedeSocial para listar as publicações
                 const publicacoes: Publicacao[] = this._redesocial.listarPublicacoes();
-
-                console.log();
-                console.log("-----------------------------------------------------------------");
+      
                 console.log();
                 publicacoes.forEach((publicacao: Publicacao) => {
-                console.log(`[${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
-                console.log();
-                console.log("\t"+publicacao.conteudo);
-                console.log();
+                    console.log("┌────────────────────────────────────────────────────────────────────┐");
+                    console.log(`  [${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log();
+                    console.log();
+                    console.log("\t"+publicacao.conteudo);
 
-                // Se a publicação for uma PublicacaoAvancada, exibe as interações
-                if (publicacao instanceof PublicacaoAvancada) {
-                    console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
-                }
+                    // Se a publicação for uma PublicacaoAvancada, exibe as interações
+                    if (publicacao instanceof PublicacaoAvancada) {
+                        console.log();
+                        console.log();  
+                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+                    }
 
-                console.log();
-                console.log("-----------------------------------------------------------------");
-                console.log();
-        });
+                    console.log();
+                    console.log("└────────────────────────────────────────────────────────────────────┘");
+                    console.log();
+                });
     
             } catch (e) {
                 if (e instanceof z.ZodError) {
@@ -315,7 +320,7 @@ class App {
                         throw new AppError("\nOpção Inválida");
                 }
 
-                const interacao = new Interacao(this._redesocial.controleIdInteracao, publicacao, tipo, usuario);
+                const interacao = new Interacao(this._redesocial.controleIdInteracao, publicacao, tipo, usuario, new Date());
 
                 // Adiciona a interação à publicação
                 this._redesocial.adicionarInteracao(publicacao, interacao);
@@ -359,22 +364,25 @@ class App {
                 const publicacoesUsuario: Publicacao[] = this._redesocial.listarPublicacoesUsuario(usuario);
 
                 console.log();
-                console.log("-----------------------------------------------------------------");
-                console.log();
                 publicacoesUsuario.forEach((publicacao: Publicacao) => {
-                console.log(`[${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);                console.log();
-                console.log("\t"+publicacao.conteudo);
-                console.log();
+                    console.log("┌────────────────────────────────────────────────────────────────────┐");
+                    console.log(`  [${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log();
+                    console.log();
+                    console.log("\t"+publicacao.conteudo);
 
-                // Se a publicação for uma PublicacaoAvancada, exibe as interações
-                if (publicacao instanceof PublicacaoAvancada) {
-                    console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
-                }
+                    // Se a publicação for uma PublicacaoAvancada, exibe as interações
+                    if (publicacao instanceof PublicacaoAvancada) {
+                        console.log();
+                        console.log();  
+                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+                    }
 
-                console.log();
-                console.log("-----------------------------------------------------------------");
-                console.log();
-        });
+                    console.log();
+                    console.log("└────────────────────────────────────────────────────────────────────┘");
+                    console.log();
+                });
+    
     
             } catch (e) {
                 if (e instanceof z.ZodError) {
@@ -440,6 +448,20 @@ class App {
             repetir = this._input("Editar outra publicação? [s/n]: ");
 
         } while (repetir.toLowerCase() === 's');
+    }
+
+
+    salvarDados(caminho: string): void {
+        const dados = {
+            usuarios: this._redesocial.usuarios,
+            publicacoes: this._redesocial.publicacoes,
+            interacoes: this._redesocial.interacoes,
+            controleIdUsuario: this._redesocial.controleIdUsuario,
+            controleIdPublicacao: this._redesocial.controleIdPublicacao,
+            controleIdInteracao: this._redesocial.controleIdInteracao,
+        };
+
+        fs.writeFileSync(caminho, JSON.stringify(dados, null, 2), 'utf-8');
     }
 }
     

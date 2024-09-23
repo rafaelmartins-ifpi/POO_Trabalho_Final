@@ -1,7 +1,7 @@
 import { Publicacao } from "./class_publicacao";
 import { Interacao } from "./class_interacao";
 import { Usuario } from "./class_usuario";
-import { TipoInteracao } from "../types";
+import { TipoInteracao } from "../utils";
 import { AppError } from "./class_AplicationError";
 
 
@@ -12,8 +12,8 @@ class PublicacaoAvancada extends Publicacao {
     private _emojiMap:{ [key: string]: string } = {like: '👍', dislike: '👎', riso: '😂', aplauso: '👏', amor: '❤️'};
     private _usuariosInteragiram : string[] = []; 
 
-    constructor (id: number, usuario: Usuario, conteudo: string) {
-        super(id, usuario, conteudo);
+    constructor (id: number, usuario: Usuario, conteudo: string, dataHora: Date) {
+        super(id, usuario, conteudo, dataHora);
     }
 
     get interacoes() {
@@ -50,7 +50,7 @@ class PublicacaoAvancada extends Publicacao {
     public listarInteracoes(): string {
         return Object.entries(this._contadorInteracoes)
             .map(([tipo, contagem]) => `${this._emojiMap[tipo]} ${contagem}`)
-            .join('   ');
+            .join('    ');
     }
 };
 

@@ -10,14 +10,15 @@ class Publicacao {
     private _conteudo: string;
     private _dataHora: Date;
 
-    constructor (id: number, usuario: Usuario, conteudo: string){
+    constructor (id: number, usuario: Usuario, conteudo: string, dataHora: Date){
         idSchema.parse(id);
         conteudoSchema.parse(conteudo);
 
         this._id = id;
         this._usuario = usuario;
         this._conteudo = conteudo;
-        this._dataHora = new Date();
+        this._dataHora = dataHora;
+
     }
 
     get id() {

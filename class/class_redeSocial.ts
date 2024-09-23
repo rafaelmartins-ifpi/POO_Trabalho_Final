@@ -4,6 +4,14 @@ import { AppError } from "./class_AplicationError";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
 import {format} from 'date-fns';
 import { Interacao } from "./class_interacao";
+import fs from 'fs';
+import { TipoInteracao } from "../utils";
+import prompt from "prompt-sync";
+
+let input = prompt();
+
+
+
 
 // REDE SOCIAL MIRC
 
@@ -31,7 +39,7 @@ class RedeSocial {
         this._controleIdPublicacao = controleIdPublicacao;
         this._controleIdInteracao = controleIdInteracao;
 
-        this.adicionarUsuario(new Usuario (1, "admin", "admin@admin.com", "11111111111"));
+        //this.adicionarUsuario(new Usuario (1, "admin", "admin@admin.com", "11111111111"));
     }
 
 
@@ -43,6 +51,10 @@ class RedeSocial {
     get publicacoes() {
         return this._publicacoes;
     }
+
+    get interacoes() {
+        return this._interacoes;
+    }  
 
 
     get controleIdUsuario() {
@@ -182,6 +194,116 @@ class RedeSocial {
 
         publicacao.conteudo = novoConteudo;
     }
+
+
+    salvarDados (arquivoUsuarios:string, arquivoPublicacoes: string, arquivoInteracoes:string): void{
+
+        // Criar conteúdo para o CSV
+        let usuariosContent: string = "USUÁRIOS\r\n";
+        for (let usuario of this._usuarios){
+            usuariosContent += `${usuario.id};${usuario.apelido};${usuario.email};${usuario.documento}\r\n`;
+        }
+
+        usuariosContent = usuariosContent.slice(0, usuariosContent.length - 2); // Remover a última linha em branco
+
+        // Criar conteúdo para o CSV das publicações, incluindo o tipo (PS/PA)
+        let publicacoesContent: string = "PUBLICAÇÕES\r\n";
+        for (let publicacao of this._publicacoes){
+            const tipoPublicacao = publicacao instanceof PublicacaoAvancada ? 'PA' : 'PS'; // Verifica o tipo da publicação
+            publicacoesContent += `${publicacao.id};${publicacao.usuario.id};${publicacao.conteudo};${publicacao.dataHora};${tipoPublicacao}\r\n`
+        }
+
+        publicacoesContent = publicacoesContent.slice(0, publicacoesContent.length - 2); // Remover a última linha em branco
+
+        let interacoesContent: string = "INTERAÇÕES\r\n";
+        for (let interacao of this._interacoes){
+            interacoesContent += `${interacao.id};${interacao.publicacao.id};${interacao.tipoInteracao};${interacao.usuario.id};${interacao.dataHora}\r\n`
+        }
+
+        interacoesContent = interacoesContent.slice(0, interacoesContent.length - 2); // Remover a última linha em branco
+
+        // Salvar o conteúdo no arquivo
+        fs.writeFileSync(arquivoUsuarios, usuariosContent, 'utf-8');
+        fs.writeFileSync(arquivoPublicacoes, publicacoesContent, 'utf-8');
+        fs.writeFileSync(arquivoInteracoes, interacoesContent, 'utf-8');
+    }
+
+
+    carregarDados (arquivoUsuarios:string, arquivoPublicacoes: string, arquivoInteracoes:string): void {
+        // Verificar se o arquivo existe
+        if (!(fs.existsSync(arquivoUsuarios) && fs.existsSync(arquivoPublicacoes) && fs.existsSync(arquivoInteracoes))) {
+            throw new Error('Primeiro Acesso [Arquivo não encontrado]. Iniciando com os dados padrão');
+        }
+
+        // Ler o conteúdo do arquivo CSV
+        let usuariosData = fs.readFileSync(arquivoUsuarios, 'utf-8');
+        // Carregar usuários
+        usuariosData.split('\r\n').slice(1).map(linha => {
+            const [id, apelido, email, documento] = linha.split(';');
+            const usuario = new Usuario(Number(id), apelido, email, documento);
+            this._usuarios.push(usuario);
+        });
+      
+        // Criar um mapa de usuários para facilitar a associação posterior
+        const usuarioMap: { [key: number]: Usuario } = {};
+        this._usuarios.forEach(usuario => {
+            usuarioMap[Number(usuario.id)] = usuario;
+        });
+
+        // Carregar publicações
+        let publicacoesData = fs.readFileSync(arquivoPublicacoes, 'utf-8');
+        publicacoesData.split('\r\n').slice(1).map(linha => {
+            const [id, usuarioId, conteudo, dataHora, tipo] = linha.split(';');
+            const usuario = usuarioMap[Number(usuarioId)];
+            const data = new Date(dataHora);
+
+            if (tipo === 'PA') {
+                const publicacao = new PublicacaoAvancada(Number(id), usuario, conteudo, data);
+                this._publicacoes.push(publicacao);
+            } else {
+                const publicacao = new Publicacao(Number(id), usuario, conteudo, data);
+                this._publicacoes.push(publicacao);
+            }
+        });
+
+        // Criar um mapa de publicações para facilitar a associação posterior
+        const publicacaoMap: { [key: number]: Publicacao } = {};
+        this._publicacoes.forEach(publicacao => {
+            publicacaoMap[Number(publicacao.id)] = publicacao;  
+        });
+        
+
+        //Carregar interações
+        let interacoesData = fs.readFileSync(arquivoInteracoes, 'utf-8');
+        interacoesData.split('\r\n').slice(1).map(linha => {
+            const [id, publicacaoId, tipoInteracao, usuarioId, dataHora] = linha.split(';');
+            const publicacao = publicacaoMap[Number(publicacaoId)];
+            const usuario = usuarioMap[Number(usuarioId)];
+            const data = new Date(dataHora);
+            const tipo = tipoInteracao as TipoInteracao;
+
+            console.log(linha);
+
+            console.log(" =========== interacoes  =========== ");
+
+            const interacao = new Interacao(Number(id), publicacao, tipo, usuario, data);
+
+            //Se for uma PublicacaoAvancada, atualizar o contador de interações
+            if (publicacao instanceof PublicacaoAvancada) {
+                publicacao.adicionarInteracao(interacao);
+            }
+
+            this._interacoes.push(interacao);
+
+        });
+
+        // Atualizar os controladores de ID com base nos últimos IDs utilizados
+        this._controleIdUsuario = this._usuarios.length + 1;
+        this._controleIdPublicacao = this._publicacoes.length + 1;
+        this._controleIdInteracao = this._interacoes.length + 1;
+
+    }
+
 }
 
 
