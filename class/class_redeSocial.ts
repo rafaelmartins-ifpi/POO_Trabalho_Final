@@ -89,7 +89,7 @@ class RedeSocial {
     encontrarUsuarioPorApelido(apelido: string): Usuario {
         const usuario = this._usuarios.find(u => u.apelido === apelido);
         if (!usuario) {
-            throw new AppError(`\nUsuário não cadastrado`);
+            throw new AppError(`\nUsuário não encontrado`);
         }
         return usuario;
     }
@@ -97,7 +97,7 @@ class RedeSocial {
     encontrarPublicacaoPorId(idPublicacao: number): Publicacao {
         const publicacao = this._publicacoes.find(p => p.id === idPublicacao);
         if (!publicacao) {
-            throw new AppError(`\nPublicacação não cadastrada`);
+            throw new AppError(`\nPublicacação não encontrada`);
         }
         return publicacao;
     }

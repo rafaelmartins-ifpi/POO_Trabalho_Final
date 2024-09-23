@@ -333,7 +333,7 @@ class App {
             }
 
             console.log();
-            repetir = this._input("Interagir em outra publicação? [s/n]: ");
+            repetir = this._input("Interagir novamente? [s/n]: ");
 
         } while (repetir.toLowerCase() === 's');
     }
@@ -352,7 +352,7 @@ class App {
 
                 console.clear();
                 console.log();
-                console.log(`-------------- FEED DE POSTAGENS DO USUARIO ${apelido.toUpperCase()} --------------`);
+                console.log(`-------------- FEED DE POSTAGENS DE ${apelido.toUpperCase()} --------------`);
                 console.log();
     
                 // Chama o método da RedeSocial para receber a lista de publicações do usuário
@@ -362,11 +362,9 @@ class App {
                 console.log("-----------------------------------------------------------------");
                 console.log();
                 publicacoesUsuario.forEach((publicacao: Publicacao) => {
-                console.log(`ID: ${publicacao.id}`);
-                console.log();
+                console.log(`[${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);                console.log();
                 console.log("\t"+publicacao.conteudo);
                 console.log();
-                console.log(`por ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
 
                 // Se a publicação for uma PublicacaoAvancada, exibe as interações
                 if (publicacao instanceof PublicacaoAvancada) {
