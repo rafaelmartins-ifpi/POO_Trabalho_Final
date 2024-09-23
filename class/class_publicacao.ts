@@ -8,7 +8,7 @@ class Publicacao {
     readonly _id: number;
     private _usuario: Usuario;
     private _conteudo: string;
-    private _dataHora = new Date();
+    private _dataHora: Date;
 
     constructor (id: number, usuario: Usuario, conteudo: string){
         idSchema.parse(id);
@@ -17,6 +17,7 @@ class Publicacao {
         this._id = id;
         this._usuario = usuario;
         this._conteudo = conteudo;
+        this._dataHora = new Date();
     }
 
     get id() {

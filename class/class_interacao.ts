@@ -10,7 +10,7 @@ class Interacao {
     private _publicacao: Publicacao;
     private _tipoInteracao: TipoInteracao;
     private _usuario: Usuario;
-    private _dataHora = new Date();
+    private _dataHora: Date;
 
     constructor (id: number, publicacao: Publicacao, tipoInteracao: TipoInteracao, usuario: Usuario) {
         idSchema.parse(id);
@@ -20,6 +20,7 @@ class Interacao {
         this._publicacao = publicacao;
         this._tipoInteracao = tipoInteracao;
         this._usuario = usuario;
+        this._dataHora = new Date();
     }
 
     get id() {
@@ -30,7 +31,7 @@ class Interacao {
         return this._publicacao;
     }
 
-    get tipoIteracao() {
+    get tipoInteracao() {
         return this._tipoInteracao;
     }
 

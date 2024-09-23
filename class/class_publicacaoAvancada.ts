@@ -20,21 +20,27 @@ class PublicacaoAvancada extends Publicacao {
         return this._interacoes;
     }
 
+    get usuariosInteragiram() {
+        return this._usuariosInteragiram;
+    }
+
     adicionarInteracao (interacao: Interacao): void {
         
         const apelido = interacao.usuario.apelido;
 
+        // verifica se o usuário já interagiu na publicação e lança a excessão
         if (this._usuariosInteragiram.includes(apelido)){
             throw new AppError (`\nUsuário: ${interacao.usuario.apelido} já interagiu nessa publicacao.`);
         }
 
+        // verifica se o usuário está interagindo em sua própria publicação
         if (this.usuario === interacao.usuario){
             throw new AppError ("\nVocê não pode interagir em sua própria publicação.");
         }
 
         this._interacoes.push(interacao);
         this._usuariosInteragiram.push(interacao.usuario.apelido);
-        this._contadorInteracoes[interacao.tipoIteracao]++;
+        this._contadorInteracoes[interacao.tipoInteracao]++;
     }
 
     totalInteracoes (): number {

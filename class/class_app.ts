@@ -8,6 +8,7 @@ import { Publicacao } from "./class_publicacao";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
 import { TipoInteracao } from "../types";
 import { Interacao } from "./class_interacao";
+import {format} from 'date-fns';
 
 
 
@@ -19,12 +20,12 @@ class App {
 
     constructor (redesocial: RedeSocial) {
         this._redesocial = redesocial;
-        this._logo = "███╗   ███╗██╗██████╗  ██████╗\n"+
-        "████╗ ████║██║██╔══██╗██╔════╝\n"+
-        "██╔████╔██║██║██████╔╝██║     \n"+
-        "██║╚██╔╝██║██║██╔══██╗██║     \n"+
-        "██║ ╚═╝ ██║██║██║  ██║╚██████╗\n"+
-        "╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
+        this._logo = "\t███╗   ███╗██╗██████╗  ██████╗\n"+
+        "\t████╗ ████║██║██╔══██╗██╔════╝\n"+
+        "\t██╔████╔██║██║██████╔╝██║     \n"+
+        "\t██║╚██╔╝██║██║██╔══██╗██║     \n"+
+        "\t██║ ╚═╝ ██║██║██║  ██║╚██████╗\n"+
+        "\t╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
     }
 
 
@@ -57,12 +58,15 @@ class App {
             
                 const apelido: string = this._input("Apelido: ").toLowerCase();
                 apelidoSchema.parse(apelido);
+                this._redesocial.validarApelidoUsuario(apelido);
                 
                 const email: string = this._input("E-mail: ");
                 emailSchema.parse(email);
+                this._redesocial.validarEmailUsuario(email);
                 
-                const documento: string = this._input("Documento (CPF): ");
+                const documento: string = this._input("CPF [números]: ");
                 documentoSchema.parse(documento);
+                this._redesocial.validarDocumentoUsuario(documento);
                 
                 const id: number = this._redesocial.controleIdUsuario;
     
@@ -144,39 +148,42 @@ class App {
                 // Pergunta ao usuário se deseja criar uma publicação avançada
                 console.log("Qual o Tipo de Postagem? \n [1] Postagem Simples\n [2] Postagem Avançada");
                 console.log();
-                const tipoPublicacao: string = this._input("R: ");
-                console.log();
+                const opTipo: string = this._input("R: ");
+                
+                // Verifica se a opção é válida
+                if (opTipo !== "1" && opTipo !== "2") {
+                    throw new AppError("\nOpção Inválida");
+                }
 
                 // inicializa o conteudo vazio
                 let conteudo: string = "";
 
-                switch (tipoPublicacao) {
-                    case "1":
-                         // Recebe o conteúdo da publicação
-                        console.log("Conteúdo da publicação:\n");
-                        conteudo = this._input("> ");
-                        conteudoSchema.parse(conteudo);
 
+                // Recebe o conteúdo da publicação
+                console.log();
+                console.log("Conteúdo da publicação:\n");
+                conteudo = this._input("> ");
+                conteudoSchema.parse(conteudo);
+
+                switch (opTipo) {
+                    case "1":
+                        
                         const publicacao = new Publicacao(this._redesocial.controleIdPublicacao, usuario, conteudo);
                         this._redesocial.adicionarPublicacao(publicacao);
-                        console.log("\nPostagem Simples com sucesso !!");
+                        console.log("\nPostagem Simples com sucesso.");
 
                         break;
                     
                     case "2":
-                        // Recebe o conteúdo da publicação
-                        console.log("Conteúdo da publicação:\n");
-                        conteudo = this._input("> ");
-                        conteudoSchema.parse(conteudo);
-
+                      
                         const publicacaoAvancada = new PublicacaoAvancada(this._redesocial.controleIdPublicacao, usuario, conteudo);
-                        this._redesocial.adicionarPublicacaoAvancada(publicacaoAvancada);
-                        console.log("\nPostagem Avançada com sucesso !!");
+                        this._redesocial.adicionarPublicacao(publicacaoAvancada);
+                        console.log("\nPostagem Avançada com sucesso.");
 
                         break;
 
                     default:
-                        throw new AppError ("\nOpção Inválida !!");
+                        throw new AppError ("\nOpção Inválida.");
                 }
             } catch (e) {
                 if (e instanceof z.ZodError) {
@@ -207,7 +214,26 @@ class App {
                 console.log();
     
                 // Chama o método da RedeSocial para listar as publicações
-                this._redesocial.listarPublicacoes();
+                const publicacoes: Publicacao[] = this._redesocial.listarPublicacoes();
+
+                console.log();
+                console.log("-----------------------------------------------------------------");
+                console.log();
+                publicacoes.forEach((publicacao: Publicacao) => {
+                console.log(`[${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                console.log();
+                console.log("\t"+publicacao.conteudo);
+                console.log();
+
+                // Se a publicação for uma PublicacaoAvancada, exibe as interações
+                if (publicacao instanceof PublicacaoAvancada) {
+                    console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+                }
+
+                console.log();
+                console.log("-----------------------------------------------------------------");
+                console.log();
+        });
     
             } catch (e) {
                 if (e instanceof z.ZodError) {
@@ -237,7 +263,8 @@ class App {
                 console.log();
 
                 // Recebe o ID da publicação
-                const idPublicacao: number = Number(this._input("ID da publicação: "));
+                const idPublicacao: number = Number(this._input("Publicação [Id]: "));
+                idSchema.parse(idPublicacao);
                 const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
 
                 if (!(publicacao instanceof PublicacaoAvancada)) {
@@ -247,14 +274,25 @@ class App {
                 // Recebe o apelido do usuário
                 console.log();
                 console.log("Quem vai interagir?");
-                const apelido: string = this._input("Usuário (apelido): ").toLowerCase();
+                console.log();
+                const apelido: string = this._input("Usuário [apelido]: ").toLowerCase();
                 const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+
+                // verifica se o usuário já interagiu na publicação e lança a excessão
+                if ((publicacao as PublicacaoAvancada).usuariosInteragiram.includes(apelido)){
+                    throw new AppError (`\n${usuario.apelido} já interagiu nessa publicacao`);
+                }
+
+                // verifica se o usuário está interagindo em sua própria publicação
+                if (usuario === publicacao.usuario){
+                    throw new AppError ("\nVocê não pode interagir em sua própria publicação.");
+                }
 
                 // Recebe o tipo de interação
                 console.log();
                 console.log("Tipos de Interação:\n [1] Like\n [2] Dislike\n [3] Riso\n [4] Aplauso\n [5] Amor");
                 console.log();
-                const tipoInteracao: string = this._input("Interação [nº]: ");
+                const tipoInteracao: string = this._input("Opção: ");
                 let tipo: TipoInteracao;
 
                 switch (tipoInteracao) {
@@ -274,7 +312,7 @@ class App {
                         tipo = TipoInteracao.Amor;
                         break;
                     default:
-                        throw new AppError("\nTipo de interação inválido.");
+                        throw new AppError("\nOpção Inválida");
                 }
 
                 const interacao = new Interacao(this._redesocial.controleIdInteracao, publicacao, tipo, usuario);
@@ -307,18 +345,38 @@ class App {
         do {
             try {
                 console.clear();
+                console.log(`-------------- FEED DE POSTAGENS POR USUARIO --------------`);
                 console.log();
                 const apelido: string = this._input("Usuario (apelido): ").toLowerCase();
                 const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
-
 
                 console.clear();
                 console.log();
                 console.log(`-------------- FEED DE POSTAGENS DO USUARIO ${apelido.toUpperCase()} --------------`);
                 console.log();
     
-                // Chama o método da RedeSocial para listar as publicações
-                this._redesocial.listarPublicacoesUsuario(usuario);
+                // Chama o método da RedeSocial para receber a lista de publicações do usuário
+                const publicacoesUsuario: Publicacao[] = this._redesocial.listarPublicacoesUsuario(usuario);
+
+                console.log();
+                console.log("-----------------------------------------------------------------");
+                console.log();
+                publicacoesUsuario.forEach((publicacao: Publicacao) => {
+                console.log(`ID: ${publicacao.id}`);
+                console.log();
+                console.log("\t"+publicacao.conteudo);
+                console.log();
+                console.log(`por ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+
+                // Se a publicação for uma PublicacaoAvancada, exibe as interações
+                if (publicacao instanceof PublicacaoAvancada) {
+                    console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+                }
+
+                console.log();
+                console.log("-----------------------------------------------------------------");
+                console.log();
+        });
     
             } catch (e) {
                 if (e instanceof z.ZodError) {
