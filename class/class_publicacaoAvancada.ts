@@ -47,7 +47,7 @@ class PublicacaoAvancada extends Publicacao {
         return this._interacoes.length;
     }
 
-    public listarInteracoes(): string {
+    public listarInteracoesPublicacao(): string {
         return Object.entries(this._contadorInteracoes)
             .map(([tipo, contagem]) => `${this._emojiMap[tipo]} ${contagem}`)
             .join('    ');

@@ -15,5 +15,10 @@ enum TipoInteracao {
 
 
 
-export {TipoInteracao};
+function limparTela(): void {
+  process.stdout.write("\x1Bc");
+}
+  
+
+export {TipoInteracao, limparTela};
 

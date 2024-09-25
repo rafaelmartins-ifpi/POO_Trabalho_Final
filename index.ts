@@ -9,6 +9,7 @@ let input = prompt();
 let arquivoUsuarios: string = "./database/usuarios.csv";
 let arquivoPublicacoes: string = "./database/publicacoes.csv";
 let arquivoInteracoes: string = "./database/interacoes.csv";
+let arquivoComentarios: string = "./database/comentarios.csv";
 
 
 function main () {
@@ -17,10 +18,9 @@ function main () {
     let redesocial = new RedeSocial();
 
     try{
-        redesocial.carregarDados(arquivoUsuarios, arquivoPublicacoes, arquivoInteracoes);
+        redesocial.carregarDados(arquivoUsuarios, arquivoPublicacoes, arquivoInteracoes, arquivoComentarios);
     }catch(e) {
         if (e instanceof z.ZodError){
-            //console.log(e.errors[0].message);
             console.log(e.errors.map(err => err.message));
         } else if ( e instanceof AplicationError)  {
             console.log(e.message);
@@ -39,7 +39,7 @@ function main () {
                     app.telaCadastrarUsuario();
                     break;
                 case "2":
-                    app.TelaListarUsusario();
+                    app.telaListarUsusario();
                     break;
                 case "3":
                     app.telaInserirPublicacao();
@@ -57,13 +57,16 @@ function main () {
                     app.telaEditarPublicacao();
                     break;   
                 case "8":
-                    console.log(`Controle IdUsuário: ${redesocial.controleIdUsuario}`);
-                    console.log(`Controle IdPublicação: ${redesocial.controleIdPublicacao}`);
-                    console.log(`Controle IdInteracao: ${redesocial.controleIdInteracao}`);
-                    input("\n[enter]");
+                    app.telaComentar();
+                    break;
+                case "9":
+                    app.telaListarInteracoes();
+                    break;
+                case "10":
+                    app.telaListarComentarios();
                     break;
                 case "0":
-                    app.redesocial.salvarDados(arquivoUsuarios, arquivoPublicacoes, arquivoInteracoes);
+                    app.redesocial.salvarDados(arquivoUsuarios, arquivoPublicacoes, arquivoInteracoes, arquivoComentarios);
                     console.log();
                     console.log("Salvando dados...");
                     break;

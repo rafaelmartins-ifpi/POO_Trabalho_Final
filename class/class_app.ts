@@ -6,20 +6,24 @@ import { apelidoSchema, conteudoSchema, documentoSchema, emailSchema, idSchema }
 import { AplicationError, AppError } from "./class_AplicationError";
 import { Publicacao } from "./class_publicacao";
 import { PublicacaoAvancada } from "./class_publicacaoAvancada";
-import { TipoInteracao } from "../utils";
+import { limparTela, TipoInteracao } from "../utils";
 import { Interacao } from "./class_interacao";
 import {format} from 'date-fns';
 import fs from 'fs'; 
+import { Comentario } from "./class_comentario";
 
 
 class App {
 
-    private _logo: string;
     private _redesocial: RedeSocial;
+    private _logo: string;
+    private _larguraPagina: number;
     private _input = prompt();
 
     constructor (redesocial: RedeSocial) {
         this._redesocial = redesocial;
+        this._larguraPagina = 92;
+        
         this._logo = "\t███╗   ███╗██╗██████╗  ██████╗\n"+
         "\t████╗ ████║██║██╔══██╗██╔════╝\n"+
         "\t██╔████╔██║██║██████╔╝██║     \n"+
@@ -33,19 +37,35 @@ class App {
     }
 
 
+    exibirCabecalho(titulo: string): void{
+        const espacoDisponivel = this._larguraPagina - titulo.length - 2;
+        const espacosEsquerda = Math.floor(espacoDisponivel / 2);
+        //const espacosDireita = espacoDisponivel - espacosEsquerda;
+          
+        console.log("~".repeat(this._larguraPagina)); // Linha superior com '~'
+        console.log(` ${' '.repeat(espacosEsquerda)}${titulo}`);
+        //console.log(` ${' '.repeat(espacosEsquerda)}${titulo}${' '.repeat(espacosDireita)} `); // Título centralizado
+        console.log("~".repeat(this._larguraPagina)); // Linha inferior com '~'
+        console.log();
+    
+    }
+
+
     telaPrincipal(): void {
-        console.clear();
+        limparTela();
         console.log();
         console.log(this._logo);
         
         console.log();
         console.log();
         console.log(
-            " [1] Cadastrar Usuário          [2] Listar Usuarios          [3] Postar\n",
-            "[4] Listar Postagens           [5] Interagir                [6] Listar Postagens por Usuario\n",
-            "[7] Editar Postagem            [8] Controle de ID's         [0] Sair\n",
+            " [1] Cadastrar Usuário          [2] Listar Usuarios         [3] Postar\n",
+            "[4] FEED de Postagens          [5] Interagir               [6] Listar Postagens por Usuario\n",
+            "[7] Editar Postagem            [8] Comentar                [9] Relatório de Interações\n",
+            "[10] Relatório de Comentários  [0] Sair\n"
         );
     }
+
 
     telaCadastrarUsuario(): void {
         let repetir: string = "";
@@ -53,10 +73,9 @@ class App {
         do {
             try {
 
-                console.clear();
-                console.log("CADASTRO DE NOVO USUÁRIO !!");
-                console.log();
-    
+                limparTela();
+                this.exibirCabecalho("CADASTRO DE USUÁRIO");
+                
                 console.log("insira os dados solicitados abaixo");
                 console.log();
             
@@ -100,17 +119,17 @@ class App {
         } while (repetir.toLowerCase() === 's');
     }
 
-    TelaListarUsusario (): void {
+
+    telaListarUsusario (): void {
 
         let repetir: string = "";
 
         do {
 
             try{
-                console.clear();
-                console.log("LISTAGEM DE USUÁRIOS");
-                console.log();
-    
+                limparTela();
+                this.exibirCabecalho("RELATÓRIO DE USUÁRIOS");
+                
                 this._redesocial.listarUsuarios();
 
             }catch(e){
@@ -137,10 +156,8 @@ class App {
 
         do {
             try {
-                console.clear();
-                console.log();
-                console.log("NOVA POSTAGEM");
-                console.log();
+                limparTela();
+                this.exibirCabecalho("POSTAR");
                 
                 // Recebe o apelido do usuário
                 const apelido: string = this._input("Usuário (apelido): ").toLowerCase();
@@ -212,10 +229,8 @@ class App {
     
         do {
             try {
-                console.clear();
-                console.log();
-                console.log("-------------- FEED DE POSTAGENS --------------");
-                console.log();
+                limparTela();
+                this.exibirCabecalho("FEED DE POSTAGENS");
     
                 // Chama o método da RedeSocial para listar as publicações
                 const publicacoes: Publicacao[] = this._redesocial.listarPublicacoes();
@@ -232,11 +247,23 @@ class App {
                     if (publicacao instanceof PublicacaoAvancada) {
                         console.log();
                         console.log();  
-                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoesPublicacao()}`);
                     }
 
                     console.log();
                     console.log("└────────────────────────────────────────────────────────────────────┘");
+                    console.log();
+
+                    //exibindo os comentários
+                    publicacao.comentarios.forEach((comentario) => {
+                        console.log("\t┌───────── ");
+                        console.log(`\t [${comentario.id}] ${comentario.usuario.apelido}, em ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                        console.log();
+                        console.log(`\t  ${comentario.texto}`);
+                        console.log();
+                        console.log("\t└───────── ");
+                        console.log();
+                    })
                     console.log();
                 });
     
@@ -262,10 +289,8 @@ class App {
 
         do {
             try {
-                console.clear();
-                console.log();
-                console.log("INTERAGIR EM PUBLICAÇÕES AVANÇADAS");
-                console.log();
+                limparTela();
+                this.exibirCabecalho("INTEGRAGIR EM POSTAGENS");
 
                 // Recebe o ID da publicação
                 const idPublicacao: number = Number(this._input("Publicação [Id]: "));
@@ -344,20 +369,68 @@ class App {
     }
 
 
+    telaComentar(): void {
+        let repetir: string = "";
+
+        do {
+            try {
+                limparTela();
+                this.exibirCabecalho("COMENTAR POSTAGEM");
+
+                // Recebe o ID da publicação
+                console.log("Qual a publicação que deseja comentar?");
+                const idPublicacao: number = Number(this._input("Publicação [Id]: "));
+                idSchema.parse(idPublicacao);
+                const publicacao: Publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
+
+                // Recebe o apelido do usuário
+                console.log();
+                console.log("Quem vai comentar?");
+                console.log();
+                const apelido: string = this._input("Usuário [apelido]: ").toLowerCase();
+                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+
+                console.log();
+                console.log("Comentário:\n");
+                const texto = this._input("> ");
+                conteudoSchema.parse(texto);
+                const comentario: Comentario = new Comentario(this._redesocial.controleIdComentario, publicacao, usuario, texto, new Date());
+
+                // Adiciona a comentário à publicação
+                this._redesocial.adicionarComentario(publicacao, comentario);
+
+                console.log("\nComentário registrado com sucesso!");
+
+            } catch (e) {
+                if (e instanceof z.ZodError) {
+                    console.log(e.errors.map(err => err.message));
+                } else if (e instanceof AppError) {
+                    console.log(e.message);
+                } else {
+                    console.log("\nErro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+
+            console.log();
+            repetir = this._input("Comentar novamente? [s/n]: ");
+
+        } while (repetir.toLowerCase() === 's');
+    }
+
+
     telaListarPublicacoesPorUsuario(): void{
         let repetir: string = "";
     
         do {
             try {
-                console.clear();
-                console.log(`-------------- FEED DE POSTAGENS POR USUARIO --------------`);
-                console.log();
+                limparTela();
+                this.exibirCabecalho("POSTAGEM DE USUÁRIO");
+                
                 const apelido: string = this._input("Usuario (apelido): ").toLowerCase();
                 const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
-                console.clear();
                 console.log();
-                console.log(`-------------- FEED DE POSTAGENS DE ${apelido.toUpperCase()} --------------`);
+                console.log(`# FEED DE ${apelido.toUpperCase()}`);
                 console.log();
     
                 // Chama o método da RedeSocial para receber a lista de publicações do usuário
@@ -375,11 +448,23 @@ class App {
                     if (publicacao instanceof PublicacaoAvancada) {
                         console.log();
                         console.log();  
-                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoes()}`);
+                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoesPublicacao()}`);
                     }
 
                     console.log();
                     console.log("└────────────────────────────────────────────────────────────────────┘");
+                    console.log();
+
+                    //exibindo os comentários
+                    publicacao.comentarios.forEach((comentario) => {
+                        console.log("\t┌───────── ");
+                        console.log(`\t[${comentario.id}] ${comentario.usuario.apelido}, em ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                        console.log();
+                        console.log(`\t  ${comentario.texto}`);
+                        console.log();
+                        console.log("\t└───────── ");
+                        console.log();
+                    })
                     console.log();
                 });
     
@@ -400,15 +485,118 @@ class App {
         } while (repetir.toLowerCase() === 's');
     }
 
+
+    telaListarInteracoes (): void {
+
+        let repetir: string = "";
+
+        do {
+
+            try{
+                limparTela();
+                this.exibirCabecalho("RELATÓRIO DE INTERAÇÕES");
+    
+                const interacoes: Interacao[] = this._redesocial.listarInteracoes();
+                console.log();
+                interacoes.forEach((interacao: Interacao) => {
+                    console.log();
+                    console.log(`Usuário[Id]: ${interacao.usuario.id} - Interacao[Id]: ${interacao.id} - Tipo: ${interacao.tipoInteracao} - Publicação[id]: ${interacao.publicacao.id} - Data/Hora: ${format(interacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                });
+            }catch(e){
+                if (e instanceof z.ZodError){
+                    //console.log(e.errors[0].message);
+                    console.log(e.errors.map(err => err.message));
+                } else if ( e instanceof AplicationError)  {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+            
+            console.log();
+            repetir = this._input("Gerar relatório novamente? [s/n]: ");
+
+        } while (repetir.toLowerCase() ==="s");
+
+    }
+
+
+    telaListarComentarios (): void {
+
+        let repetir: string = "";
+
+        do {
+
+            try{
+                limparTela();
+                this.exibirCabecalho("RELATÓRIO DE COMENTÁRIOS");
+    
+                const comentarios: Comentario[] = this._redesocial.listarComentarios();
+                console.log();
+                comentarios.forEach((comentario: Comentario) => {
+                    console.log();
+                    console.log(`Comentário[id]: ${comentario.id} - Usuário: ${comentario.usuario.apelido} - Publicação[Id]: ${comentario.publicacao.id} - em ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log(`Texto: "${comentario.texto}"`);
+                });
+            }catch(e){
+                if (e instanceof z.ZodError){
+                    //console.log(e.errors[0].message);
+                    console.log(e.errors.map(err => err.message));
+                } else if ( e instanceof AplicationError)  {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+            
+            console.log();
+            repetir = this._input("Gerar relatório novamente? [s/n]: ");
+
+        } while (repetir.toLowerCase() ==="s");
+
+    }
+
+
+    telaListarControleIds (): void {
+
+        let repetir: string = "";
+
+        do {
+
+            try{
+                limparTela();
+                this.exibirCabecalho("RELATÓRIO CONTROLE DE IDs");
+    
+                console.log(`Controle IdUsuário: ${this._redesocial.controleIdUsuario}`);
+                console.log(`Controle IdPublicação: ${this._redesocial.controleIdPublicacao}`);
+                console.log(`Controle IdInteracao: ${this._redesocial.controleIdInteracao}`);
+
+            }catch(e){
+                if (e instanceof z.ZodError){
+                    //console.log(e.errors[0].message);
+                    console.log(e.errors.map(err => err.message));
+                } else if ( e instanceof AplicationError)  {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+            
+            console.log();
+            repetir = this._input("Gerar relatório novamente? [s/n]: ");
+
+        } while (repetir.toLowerCase() ==="s");
+
+    }
+
+
     telaEditarPublicacao(): void {
         let repetir: string = "";
 
         do {
             try {
-                console.clear();
-                console.log();
-                console.log("------------ EDITAR PUBLICAÇÃO -----------");
-                console.log();
+                limparTela();
+                this.exibirCabecalho("EDITAR POSTAGEM");
 
                 
                 const apelido: string = this._input("Usuário (apelido): ");
@@ -450,19 +638,6 @@ class App {
         } while (repetir.toLowerCase() === 's');
     }
 
-
-    salvarDados(caminho: string): void {
-        const dados = {
-            usuarios: this._redesocial.usuarios,
-            publicacoes: this._redesocial.publicacoes,
-            interacoes: this._redesocial.interacoes,
-            controleIdUsuario: this._redesocial.controleIdUsuario,
-            controleIdPublicacao: this._redesocial.controleIdPublicacao,
-            controleIdInteracao: this._redesocial.controleIdInteracao,
-        };
-
-        fs.writeFileSync(caminho, JSON.stringify(dados, null, 2), 'utf-8');
-    }
 }
     
 
