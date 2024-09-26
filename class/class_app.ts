@@ -13,11 +13,13 @@ import fs from 'fs';
 import { Comentario } from "./class_comentario";
 
 
+
 class App {
 
     private _redesocial: RedeSocial;
     private _logo: string;
     private _larguraPagina: number;
+    private _currentUser!: Usuario;
     private _input = prompt();
 
     constructor (redesocial: RedeSocial) {
@@ -36,33 +38,102 @@ class App {
         return this._redesocial;
     }
 
+    get currentUser(){
+        return this._currentUser;
+    }
 
-    exibirCabecalho(titulo: string): void{
-        const espacoDisponivel = this._larguraPagina - titulo.length - 2;
-        const espacosEsquerda = Math.floor(espacoDisponivel / 2);
-        //const espacosDireita = espacoDisponivel - espacosEsquerda;
-          
+    set currentUser(usuario: Usuario){
+        this._currentUser = usuario;
+    }
+
+
+    exibirCabecalho(titulo: string, currentUser?: Usuario): void{
+        const emojiUsuario = "👤"; // Emoji que representa o usuário
+        let textoUsuario: string = ""
+        if (!currentUser){
+            textoUsuario = emojiUsuario;
+        } else {
+            textoUsuario = `${emojiUsuario} ${currentUser.apelido}`;
+        }
+      
+        const espacosEntreTituloEUsuario = this._larguraPagina - titulo.length - textoUsuario.length - 2; // Espaço entre título e usuário
+
+        console.log();
         console.log("~".repeat(this._larguraPagina)); // Linha superior com '~'
-        console.log(` ${' '.repeat(espacosEsquerda)}${titulo}`);
-        //console.log(` ${' '.repeat(espacosEsquerda)}${titulo}${' '.repeat(espacosDireita)} `); // Título centralizado
+        console.log(` ${titulo}${' '.repeat(espacosEntreTituloEUsuario)}${textoUsuario} `); // Título à esquerda, emoji e nome do usuário à direita
         console.log("~".repeat(this._larguraPagina)); // Linha inferior com '~'
         console.log();
+    }
+
+
+    telaLogin(): void {
+        
+        let repetir: boolean = true;
+        
+        do {
+            try {
+                limparTela();
+                console.log();
+                console.log(this._logo);
+                console.log();
+                console.log();
+       
+                const espacoDisponivel = this._larguraPagina - 7;
+                const espacosEsquerda = Math.floor(espacoDisponivel / 2);
+                //const espacosDireita = espacoDisponivel - espacosEsquerda;
+                console.log("~".repeat(this._larguraPagina)); // Linha superior com '~'
+                console.log(`${' '.repeat(espacosEsquerda)}LOGIN`);
+                //console.log( ${' '.repeat(espacosEsquerda)}${titulo}${' '.repeat(espacosDireita)} ); // Título centralizado
+                console.log("~".repeat(this._larguraPagina)); // Linha inferior com '~'
+                console.log();
+
+                console.log("Para novo cadastro digite: #");
+                console.log();
+
+                const apelido = this._input("Usuário [Apelido]: ");
+
+                if (apelido === "#"){
+                    this.telaCadastrarUsuario();
+                    continue;
+                }
+
+                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+                this.currentUser = usuario;
+                repetir = false;
     
+            } catch (e: any) {
+                if (e instanceof z.ZodError){
+                    //console.log(e.errors[0].message);
+                    console.log(e.errors.map(err => err.message));
+                } else if ( e instanceof AplicationError)  {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+                console.log();
+                this._input("[enter]");
+            }
+
+            console.log();
+
+        } while (repetir);
+
+
     }
 
 
     telaPrincipal(): void {
         limparTela();
-        console.log();
-        console.log(this._logo);
+        this.exibirCabecalho("MIRC - PÁGINA INICIAL",this.currentUser);
         
         console.log();
         console.log();
         console.log(
-            " [1] Cadastrar Usuário          [2] Listar Usuarios         [3] Postar\n",
-            "[4] FEED de Postagens          [5] Interagir               [6] Listar Postagens por Usuario\n",
-            "[7] Editar Postagem            [8] Comentar                [9] Relatório de Interações\n",
-            "[10] Relatório de Comentários  [0] Sair\n"
+            " [1] Minhas Postagens           [2] Postagens de Usuário    [3] FEED de Postagens\n",
+            "[4] Postar                     [5] Comentar                [6] Interagir\n",
+            "[7] Editar Postagem            [8] Editar Comentário       [9] Ver Usuários\n",
+            "[10] Relatórios                [11] Administrador          [0] LogOff\n",                  
+            "[#] Sair\n"
         );
     }
 
@@ -74,12 +145,20 @@ class App {
             try {
 
                 limparTela();
-                this.exibirCabecalho("CADASTRO DE USUÁRIO");
+                this.exibirCabecalho("MIRC - CADASTRO DE USUÁRIO",this.currentUser);
                 
                 console.log("insira os dados solicitados abaixo");
                 console.log();
+                console.log("Para tela de Login, digite #");
+                console.log("");
             
                 const apelido: string = this._input("Apelido: ").toLowerCase();
+
+                if (apelido === "#"){
+                    this.telaLogin();
+                    break;
+                }
+
                 apelidoSchema.parse(apelido);
                 this._redesocial.validarApelidoUsuario(apelido);
                 
@@ -128,9 +207,26 @@ class App {
 
             try{
                 limparTela();
-                this.exibirCabecalho("RELATÓRIO DE USUÁRIOS");
+                console.log();
+                this.exibirCabecalho("USUÁRIOS CADASTRADOS",this.currentUser);
+
+                const usuarios: Usuario[] = this._redesocial.listarUsuarios();
+
+                if (this.currentUser.apelido === "admin") {
+                    usuarios.forEach((usuario: Usuario) => {
+                        console.log();
+                        console.log(`👤 ${usuario.apelido} - [Id]: ${usuario.apelido} - [CPF]: ${usuario.documento} - [Email]: ${usuario.email}`);
+                    });
+                } else {
+                    const apelidos = usuarios.map(u => u.apelido);
+                    const colunas = 3;
+                    for (let i = 0; i < apelidos.length; i += colunas) {
+                        console.log(`👤 ${(apelidos[i] || "").padEnd(15)} 👤 ${(apelidos[i + 1] || "").padEnd(15)} 👤 ${(apelidos[i + 2] || "").padEnd(15)}`);
+                    }
+                }
+                console.log();
+                //console.log("USUÁRIOS CADASTRADOS:");
                 
-                this._redesocial.listarUsuarios();
 
             }catch(e){
                 if (e instanceof z.ZodError){
@@ -157,14 +253,14 @@ class App {
         do {
             try {
                 limparTela();
-                this.exibirCabecalho("POSTAR");
+                this.exibirCabecalho("POSTAR",this.currentUser);
                 
                 // Recebe o apelido do usuário
-                const apelido: string = this._input("Usuário (apelido): ").toLowerCase();
-                console.log();
+                // const apelido: string = this._input("Usuário (apelido): ").toLowerCase();
+                // console.log();
 
-                // Verifica se o usuário existe
-                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+                // // Verifica se o usuário existe
+                // const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
                 // Pergunta ao usuário se deseja criar uma publicação avançada
                 console.log("Qual o Tipo de Postagem? \n [1] Postagem Simples\n [2] Postagem Avançada");
@@ -183,13 +279,13 @@ class App {
                 // Recebe o conteúdo da publicação
                 console.log();
                 console.log("Conteúdo da publicação:\n");
-                conteudo = this._input("> ");
+                conteudo = this._input("✍️ ");
                 conteudoSchema.parse(conteudo);
 
                 switch (opTipo) {
                     case "1":
                         
-                        const publicacao = new Publicacao(this._redesocial.controleIdPublicacao, usuario, conteudo, new Date());
+                        const publicacao = new Publicacao(this._redesocial.controleIdPublicacao, this.currentUser, conteudo, new Date());
                         this._redesocial.adicionarPublicacao(publicacao);
                         console.log("\nPostagem Simples com sucesso.");
 
@@ -197,7 +293,7 @@ class App {
                     
                     case "2":
                       
-                        const publicacaoAvancada = new PublicacaoAvancada(this._redesocial.controleIdPublicacao, usuario, conteudo, new Date());    
+                        const publicacaoAvancada = new PublicacaoAvancada(this._redesocial.controleIdPublicacao, this.currentUser, conteudo, new Date());    
                         this._redesocial.adicionarPublicacao(publicacaoAvancada);
                         console.log("\nPostagem Avançada com sucesso.");
 
@@ -230,7 +326,7 @@ class App {
         do {
             try {
                 limparTela();
-                this.exibirCabecalho("FEED DE POSTAGENS");
+                this.exibirCabecalho("FEED DE POSTAGENS", this.currentUser);
     
                 // Chama o método da RedeSocial para listar as publicações
                 const publicacoes: Publicacao[] = this._redesocial.listarPublicacoes();
@@ -290,31 +386,32 @@ class App {
         do {
             try {
                 limparTela();
-                this.exibirCabecalho("INTEGRAGIR EM POSTAGENS");
+                this.exibirCabecalho("INTEGRAGIR EM POSTAGENS", this.currentUser);
 
                 // Recebe o ID da publicação
+                console.log("Qual a publicação que deseja interagir?");
                 const idPublicacao: number = Number(this._input("Publicação [Id]: "));
                 idSchema.parse(idPublicacao);
                 const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
 
                 if (!(publicacao instanceof PublicacaoAvancada)) {
-                    throw new AppError("\nPublicação selecionada não é uma Publicação Avançada.");
+                    throw new AppError("\nPublicação selecionada não é uma Publicação Avançada");
                 }
 
                 // Recebe o apelido do usuário
-                console.log();
-                console.log("Quem vai interagir?");
-                console.log();
-                const apelido: string = this._input("Usuário [apelido]: ").toLowerCase();
-                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+                // console.log();
+                // console.log("Quem vai interagir?");
+                // console.log();
+                // const apelido: string = this._input("Usuário [apelido]: ").toLowerCase();
+                // const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
                 // verifica se o usuário já interagiu na publicação e lança a excessão
-                if ((publicacao as PublicacaoAvancada).usuariosInteragiram.includes(apelido)){
-                    throw new AppError (`\n${usuario.apelido} já interagiu nessa publicacao`);
+                if ((publicacao as PublicacaoAvancada).usuariosInteragiram.includes(this.currentUser.apelido)){
+                    throw new AppError (`\nVocê já interagiu nessa publicacao`);
                 }
 
                 // verifica se o usuário está interagindo em sua própria publicação
-                if (usuario === publicacao.usuario){
+                if (this.currentUser === publicacao.usuario){
                     throw new AppError ("\nVocê não pode interagir em sua própria publicação.");
                 }
 
@@ -345,7 +442,7 @@ class App {
                         throw new AppError("\nOpção Inválida");
                 }
 
-                const interacao = new Interacao(this._redesocial.controleIdInteracao, publicacao, tipo, usuario, new Date());
+                const interacao = new Interacao(this._redesocial.controleIdInteracao, publicacao, tipo, this.currentUser, new Date());
 
                 // Adiciona a interação à publicação
                 this._redesocial.adicionarInteracao(publicacao, interacao);
@@ -375,7 +472,7 @@ class App {
         do {
             try {
                 limparTela();
-                this.exibirCabecalho("COMENTAR POSTAGEM");
+                this.exibirCabecalho("COMENTAR POSTAGEM", this.currentUser);
 
                 // Recebe o ID da publicação
                 console.log("Qual a publicação que deseja comentar?");
@@ -384,17 +481,17 @@ class App {
                 const publicacao: Publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
 
                 // Recebe o apelido do usuário
-                console.log();
-                console.log("Quem vai comentar?");
-                console.log();
-                const apelido: string = this._input("Usuário [apelido]: ").toLowerCase();
-                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+                // console.log();
+                // console.log("Quem vai comentar?");
+                // console.log();
+                // const apelido: string = this._input("Usuário [apelido]: ").toLowerCase();
+                // const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
                 console.log();
                 console.log("Comentário:\n");
-                const texto = this._input("> ");
+                const texto = this._input("✍️ ");
                 conteudoSchema.parse(texto);
-                const comentario: Comentario = new Comentario(this._redesocial.controleIdComentario, publicacao, usuario, texto, new Date());
+                const comentario: Comentario = new Comentario(this._redesocial.controleIdComentario, publicacao, this.currentUser, texto, new Date());
 
                 // Adiciona a comentário à publicação
                 this._redesocial.adicionarComentario(publicacao, comentario);
@@ -417,26 +514,36 @@ class App {
         } while (repetir.toLowerCase() === 's');
     }
 
-
-    telaListarPublicacoesPorUsuario(): void{
+    // se rebebe o curretUser (mostra as postagens dele), 
+    // se não (pergunta de qual usuario quer ver as postagens)
+    telaListarPublicacoesPorUsuario(currentUser?: Usuario): void{
         let repetir: string = "";
     
         do {
             try {
                 limparTela();
-                this.exibirCabecalho("POSTAGEM DE USUÁRIO");
-                
-                const apelido: string = this._input("Usuario (apelido): ").toLowerCase();
-                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
-
                 console.log();
-                console.log(`# FEED DE ${apelido.toUpperCase()}`);
+
+                let usuario: Usuario;
+                
+                if (currentUser){
+                    usuario = currentUser;
+                    this.exibirCabecalho("MIRC - MINHAS POSTAGENS", usuario);
+                } else {
+                    this.exibirCabecalho("MIRC - POSTAGENS DE OUTRO USUÁRIO", this.currentUser);
+                    console.log();
+                    const apelido: string = this._input("Usuario (apelido): ").toLowerCase();
+                    usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+                }               
+                console.log();
+
+                console.log(`📝 FEED DE ${usuario.apelido.toUpperCase()}`);
                 console.log();
     
                 // Chama o método da RedeSocial para receber a lista de publicações do usuário
                 const publicacoesUsuario: Publicacao[] = this._redesocial.listarPublicacoesUsuario(usuario);
-
                 console.log();
+
                 publicacoesUsuario.forEach((publicacao: Publicacao) => {
                     console.log("┌────────────────────────────────────────────────────────────────────┐");
                     console.log(`  [${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
@@ -494,13 +601,13 @@ class App {
 
             try{
                 limparTela();
-                this.exibirCabecalho("RELATÓRIO DE INTERAÇÕES");
+                this.exibirCabecalho("RELATÓRIO DE INTERAÇÕES", this.currentUser);
     
                 const interacoes: Interacao[] = this._redesocial.listarInteracoes();
                 console.log();
                 interacoes.forEach((interacao: Interacao) => {
                     console.log();
-                    console.log(`Usuário[Id]: ${interacao.usuario.id} - Interacao[Id]: ${interacao.id} - Tipo: ${interacao.tipoInteracao} - Publicação[id]: ${interacao.publicacao.id} - Data/Hora: ${format(interacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log(`🤝 [Id]: ${interacao.id} - 👤 ${interacao.usuario.id} - Tipo: ${interacao.tipoInteracao} - 📝 [Postagem]: ${interacao.publicacao.id} - 📅 ${format(interacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
                 });
             }catch(e){
                 if (e instanceof z.ZodError){
@@ -529,14 +636,15 @@ class App {
 
             try{
                 limparTela();
-                this.exibirCabecalho("RELATÓRIO DE COMENTÁRIOS");
+                this.exibirCabecalho("RELATÓRIO DE COMENTÁRIOS",this.currentUser);
+                console.log();
     
                 const comentarios: Comentario[] = this._redesocial.listarComentarios();
                 console.log();
                 comentarios.forEach((comentario: Comentario) => {
                     console.log();
-                    console.log(`Comentário[id]: ${comentario.id} - Usuário: ${comentario.usuario.apelido} - Publicação[Id]: ${comentario.publicacao.id} - em ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
-                    console.log(`Texto: "${comentario.texto}"`);
+                    console.log(`💬[id]: ${comentario.id} - 👤 ${comentario.usuario.apelido} - 📝[Id]: ${comentario.publicacao.id} - 📅 ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log(`✍️: "${comentario.texto}"`);
                 });
             }catch(e){
                 if (e instanceof z.ZodError){
@@ -557,7 +665,7 @@ class App {
     }
 
 
-    telaListarControleIds (): void {
+    RelatorioControleIds (): void {
 
         let repetir: string = "";
 
@@ -565,7 +673,7 @@ class App {
 
             try{
                 limparTela();
-                this.exibirCabecalho("RELATÓRIO CONTROLE DE IDs");
+                this.exibirCabecalho("RELATÓRIO CONTROLE DE IDs", this.currentUser);
     
                 console.log(`Controle IdUsuário: ${this._redesocial.controleIdUsuario}`);
                 console.log(`Controle IdPublicação: ${this._redesocial.controleIdPublicacao}`);
@@ -596,29 +704,28 @@ class App {
         do {
             try {
                 limparTela();
-                this.exibirCabecalho("EDITAR POSTAGEM");
+                this.exibirCabecalho("EDITAR POSTAGEM", this.currentUser);
 
-                
-                const apelido: string = this._input("Usuário (apelido): ");
-                const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+                // const apelido: string = this._input("Usuário (apelido): ");
+                // const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
                 // Recebe o ID da publicação
                 console.log();
-                const idPublicacao: number = Number(this._input("Publicação [Id]: "));
+                const idPublicacao: number = Number(this._input("Postagem [Id]: "));
                 const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
 
-                if (publicacao.usuario !== usuario) {
-                    throw new AppError("\nVocê pode editar publicação de outro usuário.");
+                if (publicacao.usuario !== this.currentUser) {
+                    throw new AppError("\nVocê pode editar postagem de outro usuário.");
                 }
 
                 // Recebe o novo conteúdo da publicação
                 console.log();
-                console.log("Novo conteúdo da publicação:\n");
-                const novoConteudo: string = this._input("> ");
+                console.log("Editar a postagem:\n");
+                const novoConteudo: string = this._input("📝 ");
                 conteudoSchema.parse(novoConteudo);
 
                 // Atualiza o conteúdo da publicação
-                this._redesocial.editarPublicacao(usuario, publicacao, novoConteudo);
+                this._redesocial.editarPublicacao(this.currentUser, publicacao, novoConteudo);
 
                 console.log("\nPublicação atualizada com sucesso!");
 
@@ -636,6 +743,165 @@ class App {
             repetir = this._input("Editar outra publicação? [s/n]: ");
 
         } while (repetir.toLowerCase() === 's');
+    }
+
+
+    telaEditarComentario(): void {
+        let repetir: string = "";
+
+        do {
+            try {
+                limparTela();
+                this.exibirCabecalho("EDITAR COMENTÁRIO", this.currentUser);
+
+                // const apelido: string = this._input("Usuário (apelido): ");
+                // const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
+
+                // Recebe o ID da publicação
+                console.log();
+                const idComentario: number = Number(this._input("Comentario [Id]: "));
+                const comentario = this._redesocial.encontrarComentarioPorId(idComentario);
+
+                if (comentario.usuario !== this.currentUser) {
+                    throw new AppError("\nVocê pode editar postagem de outro usuário.");
+                }
+
+                // Recebe o novo conteúdo da publicação
+                console.log();
+                console.log("Editar a comentário:\n");
+                const novoConteudo: string = this._input("💬 ");
+                conteudoSchema.parse(novoConteudo);
+
+                // Atualiza o conteúdo da publicação
+                this._redesocial.editarComentario(this.currentUser, comentario, novoConteudo);
+
+                console.log("\nPublicação atualizada com sucesso!");
+
+            } catch (e) {
+                if (e instanceof z.ZodError) {
+                    console.log(e.errors.map(err => err.message));
+                } else if (e instanceof AplicationError) {
+                    console.log(e.message);
+                } else {
+                    console.log("\nErro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+
+            console.log();
+            repetir = this._input("Editar outra publicação? [s/n]: ");
+
+        } while (repetir.toLowerCase() === 's');
+    }
+
+
+    relatorioPublicacoes(): void {
+
+        let repetir: string = "";
+
+        do {
+
+            try{
+                limparTela();
+                console.log;
+                this.exibirCabecalho("RELATÓRIO DE PUBLICAÇÕES",this.currentUser);
+                console.log();
+    
+                const publicacoes: Publicacao[] = this._redesocial.listarPublicacoes();
+           
+                publicacoes.forEach((publicacao: Publicacao) => {
+                    console.log();
+                    console.log(`📝 ${publicacao.id} - 👤 ${publicacao.usuario.apelido} - 📅 ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log(`✍️ "${publicacao.conteudo}"`);
+                });
+            }catch(e){
+                if (e instanceof z.ZodError){
+                    //console.log(e.errors[0].message);
+                    console.log(e.errors.map(err => err.message));
+                } else if ( e instanceof AplicationError)  {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+            
+            console.log();
+            repetir = this._input("Gerar relatório novamente? [s/n]: ");
+
+        } while (repetir.toLowerCase() ==="s");
+
+    }
+    
+
+    telaAdministrador(): void {
+        let repetir: string = "";
+
+        do {
+            try {
+                limparTela();
+                console.log();
+                this.exibirCabecalho("ADMINISTRADOR",this.currentUser);
+                console.log();
+                
+                if(this.currentUser.apelido !== "admin"){
+                    throw new AppError("Sessão Restrita!\nApenas usuário 👤 admin");
+                }
+                
+                console.log(
+                    "[1] Relatório - Controle de ID's        [2] Relatório - Usuários\n",
+                    "[3] Relatório - Publicações             [4] Relatório - Comentários\n",
+                    "[5] Relatório - Interações              [#] Tela Principal\n"
+                );
+                
+                console.log();
+                const op: string = this._input("> ");
+
+                if (op === "#"){
+                    this.telaPrincipal();
+                    break;
+                }
+                
+                switch (op) {
+                    case "1":
+                        this.RelatorioControleIds();
+                        break;
+                    
+                    case "2":
+                        this.telaListarUsusario();
+                        break;
+                    
+                    case "3":
+                        this.relatorioPublicacoes();
+                        break;
+                        
+                    case "4":
+                        this.telaListarComentarios();
+                        break;
+                            
+                    case "5":
+                        this.telaListarInteracoes();
+                        break;
+                    case "#":
+                        break;
+
+                    default:
+                        throw new AppError ("\nOpção Inválida.");
+                }
+            } catch (e) {
+                if (e instanceof z.ZodError) {
+                    //console.log(e.errors[0].message);
+                    console.log(e.errors.map(err => err.message));
+                } else if (e instanceof AplicationError) {
+                    console.log(e.message);
+                } else {
+                    console.log("Erro Desconhecido. Contate o Administrador:\n", e);
+                }
+            }
+            
+            console.log();
+            this._input("[enter]");
+
+        } while (repetir !== "#");
+
     }
 
 }

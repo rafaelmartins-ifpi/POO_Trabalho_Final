@@ -41,6 +41,12 @@ class Comentario{
         return this._publicacao;
     }
 
+    set texto (novoTexto: string) {
+        conteudoSchema.parse(novoTexto);
+        this._texto = novoTexto;
+        this._dataHora = new Date();
+    }
+
 }
 
 export { Comentario };

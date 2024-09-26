@@ -46,7 +46,7 @@ class RedeSocial {
         this._controleIdInteracao = controleIdInteracao;
         this._controleIdComentario = controleIdComentario;
 
-        //this.adicionarUsuario(new Usuario (1, "admin", "admin@admin.com", "11111111111"));
+        this.adicionarUsuario(new Usuario (1, "admin", "admin@admin.com", "00000000000"));
     }
 
 
@@ -130,6 +130,15 @@ class RedeSocial {
     }
 
 
+    encontrarComentarioPorId(idComentario: number): Comentario {
+        const comentario = this._comentarios.find(c => c.id === idComentario);
+        if (!comentario) {
+            throw new AppError(`\nComentario não encontrada`);
+        }
+        return comentario;
+    }
+
+
     adicionarUsuario(usuario: Usuario): void {
         this.validarIdUsuario(usuario.id);
         this.validarApelidoUsuario(usuario.apelido);
@@ -174,16 +183,12 @@ class RedeSocial {
     }
 
 
-    listarUsuarios(): void {
+    listarUsuarios(): Usuario[] {
         if (this._usuarios.length === 0) {
             throw new AppError("\nNão existem usuários cadastradaos.");
         }
-        
-        console.log("Lista de Usuários:");
-        this._usuarios.forEach((usuario: Usuario) => {
-            console.log();
-            console.log(`ID: ${usuario.id}, Apelido: ${usuario.apelido}, Email: ${usuario.email}, Documento: ${usuario.documento}`);
-        });
+
+        return this._usuarios;
     }
 
 
@@ -243,6 +248,14 @@ class RedeSocial {
     }
 
 
+    editarComentario(usuario: Usuario, comentario: Comentario, novoTexto: string): void {
+        if (usuario !== comentario.usuario) {
+            throw new AppError("\nVocê não pode editar comentário de outro usuário.");
+        }
+
+        comentario.texto = novoTexto;
+    }
+
     salvarDados (arquivoUsuarios:string, arquivoPublicacoes: string, arquivoInteracoes: string, arquivoComentarios: string): void{
 
         // Criar conteúdo para o CSV de USUÁRIO
@@ -299,7 +312,8 @@ class RedeSocial {
         usuariosData.split('\r\n').slice(1).map(linha => {
             const [id, apelido, email, documento] = linha.split(';');
             const usuario = new Usuario(Number(id), apelido, email, documento);
-            this._usuarios.push(usuario);
+            //this._usuarios.push(usuario);
+            this.adicionarUsuario(usuario);
         });
       
         // Criar um mapa de usuários para facilitar a associação posterior
@@ -372,9 +386,9 @@ class RedeSocial {
 
 
         // Atualizar os controladores de ID com base nos últimos IDs utilizados
-        this._controleIdUsuario = this._usuarios.length + 1;
-        //this._controleIdPublicacao = this._publicacoes.length + 1;
-        //this._controleIdInteracao = this._interacoes.length + 1;
+        // this._controleIdUsuario = this._usuarios.length + 1;
+        // this._controleIdPublicacao = this._publicacoes.length + 1;
+        // this._controleIdInteracao = this._interacoes.length + 1;
 
     }
 

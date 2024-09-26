@@ -3,6 +3,8 @@ import { App } from "./class/class_app";
 import { RedeSocial } from "./class/class_redeSocial";
 import { z } from "zod";
 import { AplicationError } from "./class/class_AplicationError";
+import { Usuario } from "./class/class_usuario";
+import { limparTela } from "./utils";
 
 let input = prompt();
 
@@ -29,43 +31,52 @@ function main () {
         }
     } 
     finally {
+        let app: App = new App(redesocial);
+        app.telaLogin();
+        
         do {
-            let app: App = new App(redesocial);
+            limparTela();
             app.telaPrincipal();
             op = input("Opção: ");
 
             switch (op) {
                 case "1":
-                    app.telaCadastrarUsuario();
+                    app.telaListarPublicacoesPorUsuario(app.currentUser);
                     break;
                 case "2":
-                    app.telaListarUsusario();
+                    app.telaListarPublicacoesPorUsuario();
                     break;
                 case "3":
-                    app.telaInserirPublicacao();
-                    break;
-                case "4":
                     app.telaListarPublicacoes();
                     break;
+                case "4":
+                    app.telaInserirPublicacao();
+                    break;
                 case "5":
-                    app.telaInteragir();
+                    app.telaComentar();
                     break;
                 case "6":
-                    app.telaListarPublicacoesPorUsuario();
+                    app.telaInteragir();
                     break;
                 case "7":
                     app.telaEditarPublicacao();
                     break;   
                 case "8":
-                    app.telaComentar();
+                    app.telaEditarComentario();
                     break;
                 case "9":
-                    app.telaListarInteracoes();
+                    app.telaListarUsusario();
                     break;
                 case "10":
                     app.telaListarComentarios();
                     break;
+                case "11":
+                    app.telaAdministrador();
+                    break;
                 case "0":
+                    app.telaLogin();
+                    break;
+                case "#":
                     app.redesocial.salvarDados(arquivoUsuarios, arquivoPublicacoes, arquivoInteracoes, arquivoComentarios);
                     console.log();
                     console.log("Salvando dados...");
@@ -75,7 +86,7 @@ function main () {
                     break;
             }
 
-        } while (op != "0");
+        } while (op !== "#");
     }
     
     console.log();    
