@@ -247,7 +247,7 @@ class App {
                 if (this.currentUser.apelido === "admin") {
                     usuarios.forEach((usuario: Usuario) => {
                         console.log();
-                        console.log(`👤 ${usuario.apelido} - [Id]: ${usuario.apelido} - [CPF]: ${usuario.documento} - [Email]: ${usuario.email}`);
+                        console.log(`👤 ${usuario.apelido} - [Id]: ${usuario.id} - [CPF]: ${usuario.documento} - [Email]: ${usuario.email}`);
                     });
                 } else {
                     const apelidos = usuarios.map(u => u.apelido);
