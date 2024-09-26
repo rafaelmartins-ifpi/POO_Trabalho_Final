@@ -26,12 +26,12 @@ class App {
         this._redesocial = redesocial;
         this._larguraPagina = 92;
         
-        this._logo = "\t\t███╗   ███╗██╗██████╗  ██████╗\n"+
-        "\t\t████╗ ████║██║██╔══██╗██╔════╝\n"+
-        "\t\t██╔████╔██║██║██████╔╝██║     \n"+
-        "\t\t██║╚██╔╝██║██║██╔══██╗██║     \n"+
-        "\t\t██║ ╚═╝ ██║██║██║  ██║╚██████╗\n"+
-        "\t\t╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
+        this._logo = "\t\t\t\t███╗   ███╗██╗██████╗  ██████╗\n"+
+        "\t\t\t\t████╗ ████║██║██╔══██╗██╔════╝\n"+
+        "\t\t\t\t██╔████╔██║██║██████╔╝██║     \n"+
+        "\t\t\t\t██║╚██╔╝██║██║██╔══██╗██║     \n"+
+        "\t\t\t\t██║ ╚═╝ ██║██║██║  ██║╚██████╗\n"+
+        "\t\t\t\t╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
     }
 
     get redesocial(): RedeSocial {
@@ -65,6 +65,39 @@ class App {
         console.log();
     }
 
+    exibirComentarioFormatado(comentario: Comentario): void {
+        
+        console.log("\t┌───────── ");
+        console.log(`\t 💬 ${comentario.id} - 👤 ${comentario.usuario.apelido} - 📅 ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+        console.log();
+        console.log(`\t  ${comentario.texto}`);
+        console.log();
+        console.log("\t└───────── ");
+        console.log();
+        
+    }
+
+
+    exibirPublicacaoFormatada(publicacao: Publicacao): void {
+
+        console.log("╔════════════════════════════════════════════════════════════════════╗");
+        console.log(` 📝 ${publicacao.id} - 👤 ${publicacao.usuario.apelido} - 📅 ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+        console.log();
+        console.log();
+        console.log("\t"+publicacao.conteudo);
+
+        // Se a publicação for uma PublicacaoAvancada, exibe as interações
+        if (publicacao instanceof PublicacaoAvancada) {
+            console.log();
+            console.log();  
+            console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoesPublicacao()}`);
+        }
+
+        console.log();
+        console.log("╚════════════════════════════════════════════════════════════════════╝");            
+        console.log();
+
+    }
 
     telaLogin(): void {
         
@@ -220,7 +253,10 @@ class App {
                     const apelidos = usuarios.map(u => u.apelido);
                     const colunas = 3;
                     for (let i = 0; i < apelidos.length; i += colunas) {
-                        console.log(`👤 ${(apelidos[i] || "").padEnd(15)} 👤 ${(apelidos[i + 1] || "").padEnd(15)} 👤 ${(apelidos[i + 2] || "").padEnd(15)}`);
+                        const coluna1 = apelidos[i] ? `👤 ${apelidos[i].padEnd(15)}` : '';
+                        const coluna2 = apelidos[i + 1] ? `👤 ${apelidos[i + 1].padEnd(15)}` : '';
+                        const coluna3 = apelidos[i + 2] ? `👤 ${apelidos[i + 2].padEnd(15)}` : '';
+                        console.log(`${coluna1} ${coluna2} ${coluna3}`.trim());
                     }
                 }
                 console.log();
@@ -277,8 +313,8 @@ class App {
 
                 // Recebe o conteúdo da publicação
                 console.log();
-                console.log("Conteúdo da publicação:\n");
-                conteudo = this._input("✍️ ");
+                console.log("Postagem ✍️");
+                conteudo = this._input("> ");
                 conteudoSchema.parse(conteudo);
 
                 switch (opTipo) {
@@ -332,32 +368,13 @@ class App {
       
                 console.log();
                 publicacoes.forEach((publicacao: Publicacao) => {
-                    console.log("┌────────────────────────────────────────────────────────────────────┐");
-                    console.log(`  [${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
-                    console.log();
-                    console.log();
-                    console.log("\t"+publicacao.conteudo);
+                    
+                    // exibe a publicação em formato mais legível
+                    this.exibirPublicacaoFormatada(publicacao);
 
-                    // Se a publicação for uma PublicacaoAvancada, exibe as interações
-                    if (publicacao instanceof PublicacaoAvancada) {
-                        console.log();
-                        console.log();  
-                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoesPublicacao()}`);
-                    }
-
-                    console.log();
-                    console.log("└────────────────────────────────────────────────────────────────────┘");
-                    console.log();
-
-                    //exibindo os comentários
+                    //exibindo os comentários da publicação
                     publicacao.comentarios.forEach((comentario) => {
-                        console.log("\t┌───────── ");
-                        console.log(`\t [${comentario.id}] ${comentario.usuario.apelido}, em ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
-                        console.log();
-                        console.log(`\t  ${comentario.texto}`);
-                        console.log();
-                        console.log("\t└───────── ");
-                        console.log();
+                        this.exibirComentarioFormatado(comentario);
                     })
                     console.log();
                 });
@@ -392,6 +409,9 @@ class App {
                 const idPublicacao: number = Number(this._input("Publicação [Id]: "));
                 idSchema.parse(idPublicacao);
                 const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
+                console.log();
+
+                this.exibirPublicacaoFormatada(publicacao);
 
                 if (!(publicacao instanceof PublicacaoAvancada)) {
                     throw new AppError("\nPublicação selecionada não é uma Publicação Avançada");
@@ -478,6 +498,9 @@ class App {
                 const idPublicacao: number = Number(this._input("Publicação [Id]: "));
                 idSchema.parse(idPublicacao);
                 const publicacao: Publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
+                console.log();
+
+                this.exibirPublicacaoFormatada(publicacao);
 
                 // Recebe o apelido do usuário
                 // console.log();
@@ -487,8 +510,8 @@ class App {
                 // const usuario: Usuario = this._redesocial.encontrarUsuarioPorApelido(apelido);
 
                 console.log();
-                console.log("Comentário:\n");
-                const texto = this._input("✍️ ");
+                console.log("Comentário ✍️");
+                const texto = this._input("> ");
                 conteudoSchema.parse(texto);
                 const comentario: Comentario = new Comentario(this._redesocial.controleIdComentario, publicacao, this.currentUser, texto, new Date());
 
@@ -544,32 +567,11 @@ class App {
                 console.log();
 
                 publicacoesUsuario.forEach((publicacao: Publicacao) => {
-                    console.log("┌────────────────────────────────────────────────────────────────────┐");
-                    console.log(`  [${publicacao.id}] ${publicacao.usuario.apelido}, em ${format(publicacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
-                    console.log();
-                    console.log();
-                    console.log("\t"+publicacao.conteudo);
-
-                    // Se a publicação for uma PublicacaoAvancada, exibe as interações
-                    if (publicacao instanceof PublicacaoAvancada) {
-                        console.log();
-                        console.log();  
-                        console.log(`  ${(publicacao as PublicacaoAvancada).listarInteracoesPublicacao()}`);
-                    }
-
-                    console.log();
-                    console.log("└────────────────────────────────────────────────────────────────────┘");
-                    console.log();
+                    this.exibirPublicacaoFormatada(publicacao);
 
                     //exibindo os comentários
                     publicacao.comentarios.forEach((comentario) => {
-                        console.log("\t┌───────── ");
-                        console.log(`\t[${comentario.id}] ${comentario.usuario.apelido}, em ${format(comentario.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
-                        console.log();
-                        console.log(`\t  ${comentario.texto}`);
-                        console.log();
-                        console.log("\t└───────── ");
-                        console.log();
+                        this.exibirComentarioFormatado(comentario);
                     })
                     console.log();
                 });
@@ -712,6 +714,9 @@ class App {
                 console.log();
                 const idPublicacao: number = Number(this._input("Postagem [Id]: "));
                 const publicacao = this._redesocial.encontrarPublicacaoPorId(idPublicacao);
+                console.log();
+
+                this.exibirPublicacaoFormatada(publicacao);
 
                 if (publicacao.usuario !== this.currentUser) {
                     throw new AppError("\nVocê pode editar postagem de outro usuário.");
@@ -760,6 +765,9 @@ class App {
                 console.log();
                 const idComentario: number = Number(this._input("Comentario [Id]: "));
                 const comentario = this._redesocial.encontrarComentarioPorId(idComentario);
+                console.log();
+
+                this.exibirComentarioFormatado(comentario);
 
                 if (comentario.usuario !== this.currentUser) {
                     throw new AppError("\nVocê pode editar postagem de outro usuário.");

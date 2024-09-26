@@ -37,6 +37,8 @@ function main () {
         do {
             limparTela();
             app.telaPrincipal();
+            console.log();
+            console.log();
             op = input("Opção: ");
 
             switch (op) {
