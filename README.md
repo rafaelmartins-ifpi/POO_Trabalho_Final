@@ -8,10 +8,12 @@ Trabalho Final da Matéria POO 2024/1
 - date-fns *(formatar datas)*;  
 - ts-node *(rodar diretamente o arquivo ts sem transpilar)*
 ## Integrantes
-- João Vitor
 - Rafael L. Martins
 
 ## Video Apresentação
-- [video Demonstração](https://github.com/rafaelmartins-ifpi/POO_Trabalho_Final/blob/main/videoApresentacao/video1.mkv)
+- [Vídeo Demonstração](https://github.com/rafaelmartins-ifpi/POO_Trabalho_Final/blob/main/videoApresentacao/video1.mkv)
 
-*Obs: para ver o vídeo, deve-se fazer o download do arquivo no link acima*
+## Observações
+
+- Para ver o vídeo, deve-se fazer o download do arquivo no link acima
+- Aplicação gera automaticamente um usuário "admin", com acesso às áreas restritas
