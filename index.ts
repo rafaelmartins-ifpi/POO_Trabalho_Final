@@ -68,9 +68,6 @@ function main () {
                     app.telaListarUsusario();
                     break;
                 case "10":
-                    app.telaListarComentarios();
-                    break;
-                case "11":
                     app.telaAdministrador();
                     break;
                 case "0":

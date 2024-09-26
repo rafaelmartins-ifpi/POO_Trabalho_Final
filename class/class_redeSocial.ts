@@ -45,8 +45,6 @@ class RedeSocial {
         this._controleIdPublicacao = controleIdPublicacao;
         this._controleIdInteracao = controleIdInteracao;
         this._controleIdComentario = controleIdComentario;
-
-        this.adicionarUsuario(new Usuario (1, "admin", "admin@admin.com", "00000000000"));
     }
 
 
@@ -145,8 +143,10 @@ class RedeSocial {
         this.validarEmailUsuario(usuario.email);
         this.validarDocumentoUsuario(usuario.documento);
         
-        this._usuarios.push(usuario);
-        this._controleIdUsuario +=1;
+        if(!(this._usuarios.some((u: Usuario) => u.apelido === "admin") && usuario.apelido === "admin")){
+            this._usuarios.push(usuario);
+            this._controleIdUsuario +=1;
+        }
     }
 
 
@@ -302,9 +302,9 @@ class RedeSocial {
 
     carregarDados (arquivoUsuarios:string, arquivoPublicacoes: string, arquivoInteracoes:string, arquivoComentarios: string): void {
         // Verificar se o arquivo existe
-        if (!(fs.existsSync(arquivoUsuarios) && fs.existsSync(arquivoPublicacoes) && fs.existsSync(arquivoInteracoes) && fs.existsSync(arquivoComentarios))) {
-            throw new Error('Primeiro Acesso [Arquivo não encontrado]. Iniciando com os dados padrão');
-        }
+        // if (!(fs.existsSync(arquivoUsuarios) && fs.existsSync(arquivoPublicacoes) && fs.existsSync(arquivoInteracoes) && fs.existsSync(arquivoComentarios))) {
+        //     throw new Error('Primeiro Acesso [Arquivo não encontrado]. Iniciando com os dados padrão');
+        // }
 
         // Ler o conteúdo do arquivo CSV
         let usuariosData = fs.readFileSync(arquivoUsuarios, 'utf-8');

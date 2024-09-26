@@ -26,12 +26,12 @@ class App {
         this._redesocial = redesocial;
         this._larguraPagina = 92;
         
-        this._logo = "\t███╗   ███╗██╗██████╗  ██████╗\n"+
-        "\t████╗ ████║██║██╔══██╗██╔════╝\n"+
-        "\t██╔████╔██║██║██████╔╝██║     \n"+
-        "\t██║╚██╔╝██║██║██╔══██╗██║     \n"+
-        "\t██║ ╚═╝ ██║██║██║  ██║╚██████╗\n"+
-        "\t╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
+        this._logo = "\t\t███╗   ███╗██╗██████╗  ██████╗\n"+
+        "\t\t████╗ ████║██║██╔══██╗██╔════╝\n"+
+        "\t\t██╔████╔██║██║██████╔╝██║     \n"+
+        "\t\t██║╚██╔╝██║██║██╔══██╗██║     \n"+
+        "\t\t██║ ╚═╝ ██║██║██║  ██║╚██████╗\n"+
+        "\t\t╚═╝     ╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝"          
     }
 
     get redesocial(): RedeSocial {
@@ -129,11 +129,10 @@ class App {
         console.log();
         console.log();
         console.log(
-            " [1] Minhas Postagens           [2] Postagens de Usuário    [3] FEED de Postagens\n",
-            "[4] Postar                     [5] Comentar                [6] Interagir\n",
-            "[7] Editar Postagem            [8] Editar Comentário       [9] Ver Usuários\n",
-            "[10] Relatórios                [11] Administrador          [0] LogOff\n",                  
-            "[#] Sair\n"
+            " [1] Minhas Postagens          [2] Postagens de Usuário    [3] FEED de Postagens\n",
+            "[4] Postar                    [5] Comentar                [6] Interagir\n",
+            "[7] Editar Postagem           [8] Editar Comentário       [9] Ver Usuários\n",
+            "[10] Administrador            [0] LogOff                  [#] Sair"
         );
     }
 
@@ -607,7 +606,7 @@ class App {
                 console.log();
                 interacoes.forEach((interacao: Interacao) => {
                     console.log();
-                    console.log(`🤝 [Id]: ${interacao.id} - 👤 ${interacao.usuario.id} - Tipo: ${interacao.tipoInteracao} - 📝 [Postagem]: ${interacao.publicacao.id} - 📅 ${format(interacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
+                    console.log(`🤝 [Id]: ${interacao.id} - 👤 [${interacao.usuario.id}] ${interacao.usuario.apelido} - Tipo: ${interacao.tipoInteracao} - 📝 [Postagem]: ${interacao.publicacao.id} - 📅 ${format(interacao.dataHora, "dd/MM/yyy 'às' HH:mm")}`);
                 });
             }catch(e){
                 if (e instanceof z.ZodError){
@@ -847,7 +846,7 @@ class App {
                 }
                 
                 console.log(
-                    "[1] Relatório - Controle de ID's        [2] Relatório - Usuários\n",
+                    " [1] Relatório - Controle de ID's        [2] Relatório - Usuários\n",
                     "[3] Relatório - Publicações             [4] Relatório - Comentários\n",
                     "[5] Relatório - Interações              [#] Tela Principal\n"
                 );
@@ -884,7 +883,8 @@ class App {
                         break;
 
                     default:
-                        throw new AppError ("\nOpção Inválida.");
+                        console.log("\nOpção Inválida");
+                        break;
                 }
             } catch (e) {
                 if (e instanceof z.ZodError) {
@@ -895,10 +895,11 @@ class App {
                 } else {
                     console.log("Erro Desconhecido. Contate o Administrador:\n", e);
                 }
+
+                console.log();
+                this._input("Voltar para Tela Inicial\n[enter]");
+                break;
             }
-            
-            console.log();
-            this._input("[enter]");
 
         } while (repetir !== "#");
 
