@@ -12,4 +12,6 @@ Trabalho Final da Matéria POO 2024/1
 - Rafael L. Martins
 
 ## Video Apresentação
-- [video1](https://github.com/rafaelmartins-ifpi/POO_Trabalho_Final/blob/main/videoApresentacao/video1.mkv)
+- [video Demonstração](https://github.com/rafaelmartins-ifpi/POO_Trabalho_Final/blob/main/videoApresentacao/video1.mkv)
+
+*Obs: para ver o vídeo, deve-se fazer o download do arquivo no link acima*
